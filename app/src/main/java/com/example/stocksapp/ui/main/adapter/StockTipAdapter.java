@@ -36,7 +36,16 @@ public class StockTipAdapter extends RecyclerView.Adapter<StockTipAdapter.StockT
     @Override
     public void onBindViewHolder(@NonNull StockTipViewHolder holder, int position) {
         StockTip item = items.get(position);
-        holder.tvTitle.setText(item.getTitle());
+
+        // 1. 종목명 설정 (getTitle()이 Symbol을 반환하도록 되어 있음)
+        if (holder.tvSymbol != null) {
+            holder.tvSymbol.setText(item.getTitle());
+        }
+
+        // 2. 설명 설정
+        if (holder.tvDescription != null) {
+            holder.tvDescription.setText(item.getDescription());
+        }
     }
 
     @Override
@@ -45,11 +54,15 @@ public class StockTipAdapter extends RecyclerView.Adapter<StockTipAdapter.StockT
     }
 
     static class StockTipViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle;
+        // 🟡 [중요] 변수 이름을 XML ID와 비슷하게 변경 (tvTitle -> tvSymbol)
+        TextView tvSymbol;
+        TextView tvDescription;
 
         StockTipViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tvTitle);
+            // 🟡 [중요] XML 파일의 ID와 정확히 일치해야 합니다.
+            tvSymbol = itemView.findViewById(R.id.tvSymbol);
+            tvDescription = itemView.findViewById(R.id.tvDescription);
         }
     }
 }

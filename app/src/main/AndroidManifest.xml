@@ -18,6 +18,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.main.AudioNewsActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.onboarding.OnboardingActivity"
             android:exported="true">
             <intent-filter>

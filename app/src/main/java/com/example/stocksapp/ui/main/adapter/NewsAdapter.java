@@ -1,7 +1,6 @@
 package com.example.stocksapp.ui.main.adapter;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,18 +11,25 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.stocksapp.R;
 import com.example.stocksapp.data.model.NewsItem;
-import com.example.stocksapp.ui.main.WebViewActivity;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder> {
 
+    // 1. 클릭 이벤트를 전달하기 위한 인터페이스 정의
+    public interface OnItemClickListener {
+        void onItemClick(NewsItem item);
+    }
+
     private final Context context;
     private final List<NewsItem> items = new ArrayList<>();
+    private final OnItemClickListener listener; // 2. 리스너 변수 추가
 
-    public NewsAdapter(Context context) {
+    // 3. 생성자 수정: 리스너를 매개변수로 받도록 변경
+    public NewsAdapter(Context context, OnItemClickListener listener) {
         this.context = context;
+        this.listener = listener;
     }
 
     public void setItems(List<NewsItem> list) {
@@ -45,10 +51,12 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.NewsViewHolder
     public void onBindViewHolder(@NonNull NewsViewHolder holder, int position) {
         NewsItem item = items.get(position);
         holder.tvTitle.setText(item.getTitle());
+
+        // 4. 클릭 시 직접 이동하지 않고, MainActivity(리스너)에게 알림
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(context, WebViewActivity.class);
-            intent.putExtra("url", item.getUrl());
-            context.startActivity(intent);
+            if (listener != null) {
+                listener.onItemClick(item);
+            }
         });
     }
 
