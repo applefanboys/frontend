@@ -1,47 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 온보딩 화면 -->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal"
     android:padding="24dp"
-    android:background="#7FD1A6">
+    android:background="#F3F4F6">
 
+    <!-- 메인 타이틀 -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="나만의 뉴스 피드"
         android:textSize="26sp"
-        android:textColor="@android:color/white"
+        android:textColor="#111827"
         android:layout_marginTop="40dp"
         android:layout_marginBottom="8dp" />
 
+    <!-- 서브 타이틀 (설명 문구) -->
     <TextView
         android:id="@+id/tvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="시작을 누르고\n관심 키워드와 종목을 골라보세요"
         android:textSize="16sp"
-        android:textColor="@android:color/white"
+        android:textColor="#6B7280"
         android:gravity="center"
         android:layout_marginBottom="32dp" />
 
+    <!--
+        시작 버튼
+        - 이 버튼을 누르면 아래 layoutSelect를 보이게 하는 식으로 사용
+        - 파란색 프라이머리 버튼 배경 사용(bg_primary_button)
+    -->
     <Button
         android:id="@+id/btnStart"
         android:layout_width="200dp"
         android:layout_height="48dp"
         android:text="시작하기"
         android:textSize="18sp"
-        android:backgroundTint="#FFE66D"
-        android:textColor="@android:color/black" />
+        android:background="@drawable/bg_primary_button"
+        android:textColor="#FFFFFF" />
 
+    <!--
+        아래 영역은 길어질 수 있어서 ScrollView로 감싸줌
+        layout_weight=1 로 남는 공간을 채우도록 설정
+    -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="24dp">
 
+        <!--
+            실제 선택 UI가 들어가는 영역
+            - 처음에는 GONE 으로 숨겨두고
+            - btnStart 클릭 시 VISIBLE 로 바꿔서 사용
+        -->
         <LinearLayout
             android:id="@+id/layoutSelect"
             android:layout_width="match_parent"
@@ -49,28 +67,37 @@
             android:orientation="vertical"
             android:visibility="gone">
 
+            <!-- 키워드 선택 타이틀 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="관심 키워드를 선택하세요"
                 android:textSize="18sp"
-                android:textColor="@android:color/white"
+                android:textColor="#111827"
                 android:layout_marginBottom="12dp" />
 
+            <!-- 1줄: IT / 경제 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
+                <!--
+                    키워드 칩 버튼
+                    - bg_chip: 선택/비선택에 따라 색 변경
+                    - chip_text_color: 선택 시 흰 글씨, 기본은 진회색
+                    - isSelected 상태는 OnboardingActivity에서 제어
+                -->
                 <Button
                     android:id="@+id/btnKeywordIt"
                     android:layout_width="0dp"
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="IT"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
 
                 <Space
                     android:layout_width="8dp"
@@ -82,10 +109,12 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="경제"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
             </LinearLayout>
 
+            <!-- 2줄: 금융 / 글로벌 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -98,8 +127,9 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="금융"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
 
                 <Space
                     android:layout_width="8dp"
@@ -111,10 +141,12 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="글로벌"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
             </LinearLayout>
 
+            <!-- 3줄: 기타 + 오른쪽 빈 칸 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -127,27 +159,31 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="기타"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
 
                 <Space
                     android:layout_width="8dp"
                     android:layout_height="1dp" />
 
-                <View
+                <!-- 오른쪽은 비워두는 자리 -->
+                <Space
                     android:layout_width="0dp"
-                    android:layout_height="0dp"
+                    android:layout_height="44dp"
                     android:layout_weight="1" />
             </LinearLayout>
 
+            <!-- 종목 선택 타이틀 -->
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="관심 종목을 선택하세요"
                 android:textSize="18sp"
-                android:textColor="@android:color/white"
+                android:textColor="#111827"
                 android:layout_marginBottom="12dp" />
 
+            <!-- 종목 1줄: 삼성전자 / 현대차 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -160,8 +196,9 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="삼성전자"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
 
                 <Space
                     android:layout_width="8dp"
@@ -173,10 +210,12 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="현대차"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
             </LinearLayout>
 
+            <!-- 종목 2줄: 카카오 / 네이버 -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -189,8 +228,9 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="카카오"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
 
                 <Space
                     android:layout_width="8dp"
@@ -202,18 +242,20 @@
                     android:layout_height="44dp"
                     android:layout_weight="1"
                     android:text="네이버"
-                    android:backgroundTint="#FFFFFF"
-                    android:textColor="#333333" />
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color" />
             </LinearLayout>
 
+            <!-- 선택 완료 버튼 (프라이머리 파란색) -->
             <Button
                 android:id="@+id/btnDone"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:text="선택 완료"
                 android:textSize="18sp"
-                android:backgroundTint="#FFE66D"
-                android:textColor="#000000"
+                android:background="@drawable/bg_primary_button"
+                android:textColor="#FFFFFF"
                 android:layout_marginBottom="24dp" />
 
         </LinearLayout>
