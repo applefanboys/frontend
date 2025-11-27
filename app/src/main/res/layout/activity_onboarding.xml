@@ -1,264 +1,542 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 온보딩 화면 -->
+<!-- 온보딩 4단계 화면 레이아웃
+     한 Activity 안에서 단계별 컨테이너의 visibility만 바꿔가며 사용 -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center_horizontal"
     android:padding="24dp"
     android:background="#F3F4F6">
 
-    <!-- 메인 타이틀 -->
+    <!-- 상단 타이틀 영역 -->
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="나만의 뉴스 피드"
-        android:textSize="26sp"
+        android:text="나만의 경제 뉴스 만들기"
+        android:textSize="24sp"
         android:textColor="#111827"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="8dp" />
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="4dp" />
 
-    <!-- 서브 타이틀 (설명 문구) -->
+    <!-- 현재 단계 설명 -->
     <TextView
         android:id="@+id/tvSubtitle"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="시작을 누르고\n관심 키워드와 종목을 골라보세요"
-        android:textSize="16sp"
+        android:text="관심 분야를 선택하세요"
+        android:textSize="15sp"
         android:textColor="#6B7280"
-        android:gravity="center"
-        android:layout_marginBottom="32dp" />
+        android:layout_marginBottom="16dp" />
 
-    <!--
-        시작 버튼
-        - 이 버튼을 누르면 아래 layoutSelect를 보이게 하는 식으로 사용
-        - 파란색 프라이머리 버튼 배경 사용(bg_primary_button)
-    -->
-    <Button
-        android:id="@+id/btnStart"
-        android:layout_width="200dp"
-        android:layout_height="48dp"
-        android:text="시작하기"
-        android:textSize="18sp"
-        android:background="@drawable/bg_primary_button"
-        android:textColor="#FFFFFF" />
-
-    <!--
-        아래 영역은 길어질 수 있어서 ScrollView로 감싸줌
-        layout_weight=1 로 남는 공간을 채우도록 설정
-    -->
+    <!-- 아래 내용은 길어질 수 있으니 ScrollView 로 감싸기 -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="24dp">
+        android:layout_weight="1">
 
-        <!--
-            실제 선택 UI가 들어가는 영역
-            - 처음에는 GONE 으로 숨겨두고
-            - btnStart 클릭 시 VISIBLE 로 바꿔서 사용
-        -->
         <LinearLayout
-            android:id="@+id/layoutSelect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:orientation="vertical">
 
-            <!-- 키워드 선택 타이틀 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="관심 키워드를 선택하세요"
-                android:textSize="18sp"
-                android:textColor="#111827"
-                android:layout_marginBottom="12dp" />
-
-            <!-- 1줄: IT / 경제 -->
+            <!-- 1단계: 관심 분야 (대분류) -->
             <LinearLayout
+                android:id="@+id/layoutStep1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:visibility="visible">
 
-                <!--
-                    키워드 칩 버튼
-                    - bg_chip: 선택/비선택에 따라 색 변경
-                    - chip_text_color: 선택 시 흰 글씨, 기본은 진회색
-                    - isSelected 상태는 OnboardingActivity에서 제어
-                -->
-                <Button
-                    android:id="@+id/btnKeywordIt"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="IT"
-                    android:textSize="14sp"
-                    android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="관심 분야를 선택하세요 (1개 이상)"
+                    android:textSize="18sp"
+                    android:textColor="#111827"
+                    android:layout_marginBottom="12dp" />
 
-                <Space
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
+                <!-- 1줄: 전체 경제 / 주식·증권 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
 
-                <Button
-                    android:id="@+id/btnKeywordEco"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="경제"
-                    android:textSize="14sp"
-                    android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
+                    <Button
+                        android:id="@+id/btnCategoryAllEconomy"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="전체 경제"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnCategoryStock"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="주식·증권"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 2줄: 산업·기업 / 부동산 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnCategoryIndustry"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="산업·기업"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnCategoryRealEstate"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="부동산"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 3줄: 금융 / 국제·글로벌 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnCategoryFinance"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="금융"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnCategoryGlobal"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="국제·글로벌"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 4줄: 기술·IT / 원자재 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnCategoryIt"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="기술·IT"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnCategoryCommodity"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="원자재"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
             </LinearLayout>
 
-            <!-- 2줄: 금융 / 글로벌 -->
+            <!-- 2단계: 투자/소비 성향 -->
             <LinearLayout
+                android:id="@+id/layoutStep2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="투자/소비 성향은 어떤가요?"
+                    android:textSize="18sp"
+                    android:textColor="#111827"
+                    android:layout_marginBottom="12dp" />
 
                 <Button
-                    android:id="@+id/btnKeywordFinance"
-                    android:layout_width="0dp"
+                    android:id="@+id/btnProfileSafe"
+                    android:layout_width="match_parent"
                     android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="금융"
+                    android:text="안정형 (리스크 최소)"
                     android:textSize="14sp"
                     android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
-
-                <Space
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
 
                 <Button
-                    android:id="@+id/btnKeywordGlobal"
-                    android:layout_width="0dp"
+                    android:id="@+id/btnProfileNeutral"
+                    android:layout_width="match_parent"
                     android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="글로벌"
+                    android:text="중립형 (균형형)"
                     android:textSize="14sp"
                     android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnProfileAggressive"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="공격형 (단기 이슈 중심)"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnProfileNonInvestor"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="비투자형 (시사 정보 위주)"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
             </LinearLayout>
 
-            <!-- 3줄: 기타 + 오른쪽 빈 칸 -->
+            <!-- 3단계: 자주 보는 뉴스 유형 -->
             <LinearLayout
+                android:id="@+id/layoutStep3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="가장 자주 보는 경제 뉴스는?"
+                    android:textSize="18sp"
+                    android:textColor="#111827"
+                    android:layout_marginBottom="12dp" />
 
                 <Button
-                    android:id="@+id/btnKeywordEtc"
-                    android:layout_width="0dp"
+                    android:id="@+id/btnNewsStock"
+                    android:layout_width="match_parent"
                     android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="기타"
+                    android:text="주식 종목 뉴스"
                     android:textSize="14sp"
                     android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
 
-                <Space
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
-
-                <!-- 오른쪽은 비워두는 자리 -->
-                <Space
-                    android:layout_width="0dp"
+                <Button
+                    android:id="@+id/btnNewsIndicator"
+                    android:layout_width="match_parent"
                     android:layout_height="44dp"
-                    android:layout_weight="1" />
+                    android:text="경제 지표/정책(CPI·금리·환율 등)"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnNewsRealEstate"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="부동산 시장 동향"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnNewsGlobal"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="글로벌 이슈(미국·중국 등)"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnNewsTech"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="기술/미래산업(AI·반도체·전기차)"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
+                <Button
+                    android:id="@+id/btnNewsIndustryTrend"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:text="산업 트렌드(제조·물류·서비스)"
+                    android:textSize="14sp"
+                    android:background="@drawable/bg_chip"
+                    android:textColor="@color/chip_text_color"
+                    android:layout_marginBottom="8dp" />
+
             </LinearLayout>
 
-            <!-- 종목 선택 타이틀 -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="관심 종목을 선택하세요"
-                android:textSize="18sp"
-                android:textColor="#111827"
-                android:layout_marginBottom="12dp" />
-
-            <!-- 종목 1줄: 삼성전자 / 현대차 -->
+            <!-- 4단계: 관심 산업/테마 (선택 옵션) -->
             <LinearLayout
+                android:id="@+id/layoutStep4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                <Button
-                    android:id="@+id/btnStockSamsung"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="삼성전자"
-                    android:textSize="14sp"
-                    android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="관심 있는 산업/테마를 선택하세요 (선택하지 않아도 괜찮아요)"
+                    android:textSize="18sp"
+                    android:textColor="#111827"
+                    android:layout_marginBottom="12dp" />
 
-                <Space
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
+                <!-- 1줄: 반도체 / AI -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
 
-                <Button
-                    android:id="@+id/btnStockHyundai"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="현대차"
-                    android:textSize="14sp"
-                    android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
+                    <Button
+                        android:id="@+id/btnThemeSemiconductor"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="반도체"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnThemeAi"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="AI/클라우드"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 2줄: 2차전지 / 자동차 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnThemeBattery"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="2차전지"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnThemeAuto"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="자동차/전기차"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 3줄: 바이오 / 빅테크 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnThemeBio"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="바이오/헬스케어"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnThemeBigTech"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="빅테크"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 4줄: 금융업 / 에너지 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnThemeFinance"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="금융업"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnThemeEnergy"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="에너지"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
+                <!-- 5줄: 유통/소비재 / 여행·항공 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="8dp">
+
+                    <Button
+                        android:id="@+id/btnThemeRetail"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="유통/소비재"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="1dp" />
+
+                    <Button
+                        android:id="@+id/btnThemeTravel"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:text="여행/항공"
+                        android:textSize="14sp"
+                        android:background="@drawable/bg_chip"
+                        android:textColor="@color/chip_text_color" />
+                </LinearLayout>
+
             </LinearLayout>
-
-            <!-- 종목 2줄: 카카오 / 네이버 -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginBottom="24dp">
-
-                <Button
-                    android:id="@+id/btnStockKakao"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="카카오"
-                    android:textSize="14sp"
-                    android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
-
-                <Space
-                    android:layout_width="8dp"
-                    android:layout_height="1dp" />
-
-                <Button
-                    android:id="@+id/btnStockNaver"
-                    android:layout_width="0dp"
-                    android:layout_height="44dp"
-                    android:layout_weight="1"
-                    android:text="네이버"
-                    android:textSize="14sp"
-                    android:background="@drawable/bg_chip"
-                    android:textColor="@color/chip_text_color" />
-            </LinearLayout>
-
-            <!-- 선택 완료 버튼 (프라이머리 파란색) -->
-            <Button
-                android:id="@+id/btnDone"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:text="선택 완료"
-                android:textSize="18sp"
-                android:background="@drawable/bg_primary_button"
-                android:textColor="#FFFFFF"
-                android:layout_marginBottom="24dp" />
 
         </LinearLayout>
+
     </ScrollView>
+
+    <!-- 하단 이전 / 다음(or 완료) 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <Button
+            android:id="@+id/btnPrev"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="이전"
+            android:textSize="16sp"
+            android:background="@drawable/bg_chip"
+            android:textColor="@color/chip_text_color"
+            android:visibility="invisible" />
+
+        <Space
+            android:layout_width="12dp"
+            android:layout_height="1dp" />
+
+        <Button
+            android:id="@+id/btnNext"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="다음"
+            android:textSize="16sp"
+            android:background="@drawable/bg_primary_button"
+            android:textColor="#FFFFFF" />
+
+    </LinearLayout>
 
 </LinearLayout>
