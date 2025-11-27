@@ -1,3 +1,17 @@
 <resources>
-    <style name="Theme.StocksApp" parent="Theme.Material3.DayNight.NoActionBar"/>
+    <!-- 앱 전체 기본 테마 -->
+    <style name="Theme.StocksApp" parent="Theme.Material3.DayNight.NoActionBar">
+
+        <!-- 여기서부터는 우리가 덮어쓰는 색 설정 -->
+
+        <!-- 메인 포인트 색 (상단바, 기본 버튼 등) -->
+        <item name="colorPrimary">@color/app_primary</item>
+        <!-- 메인 색 위에 올라가는 글자 색 -->
+        <item name="colorOnPrimary">@color/app_on_primary</item>
+
+        <!-- 서브 포인트 색 (필요하면 사용, 안 써도 문제 없음) -->
+        <item name="colorSecondary">@color/app_secondary</item>
+        <item name="colorOnSecondary">@color/app_on_secondary</item>
+
+    </style>
 </resources>

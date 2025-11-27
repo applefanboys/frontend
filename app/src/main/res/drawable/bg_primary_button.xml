@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 파란색 기본 버튼 배경 (로그인, 시작하기, 선택 완료) -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#1F000000">
+
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <solid android:color="#2563EB" />
+        </shape>
+    </item>
+
+</ripple>

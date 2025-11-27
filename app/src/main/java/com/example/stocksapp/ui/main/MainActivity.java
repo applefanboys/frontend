@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ProgressBar;
-import android.widget.Toast;
+// import android.widget.Toast; // 기본 Toast 미사용
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,10 +46,8 @@ public class MainActivity extends AppCompatActivity {
         rvTopicCard.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
         // 3. 어댑터 초기화 및 클릭 리스너 설정
-        // 뉴스를 클릭하면 AudioNewsActivity로 이동
         newsAdapter = new NewsAdapter(this, item -> {
             Intent intent = new Intent(MainActivity.this, AudioNewsActivity.class);
-            // (선택사항) 나중에 데이터를 넘겨줄 때 주석 해제
             // intent.putExtra("newsTitle", item.getTitle());
             startActivity(intent);
         });
@@ -69,58 +67,60 @@ public class MainActivity extends AppCompatActivity {
     private void loadFeed() {
         progressBar.setVisibility(View.VISIBLE);
 
-        // -------------------------------------------------------------
-        // [테스트 모드] FakeFeedRepository를 사용하여 가짜 데이터를 바로 보여줍니다.
-        // -------------------------------------------------------------
-
         // 1. 가짜 데이터 가져오기
         FeedResponse fakeData = FakeFeedRepository.getFeed();
 
         if (fakeData != null) {
-            // 2. 각 어댑터에 데이터 채워 넣기
-            // 🔴 수정된 부분: 메서드 이름을 올바르게 변경했습니다.
-
-            // getPersonal() -> getNews()로 변경 (FeedResponse에 정의된 실제 이름)
+            // 2. 데이터 세팅
             newsAdapter.setItems(fakeData.getNews());
-
-            // getStocks() -> getStockTips()로 변경
             stockTipAdapter.setItems(fakeData.getStockTips());
-
-            // getTopics()는 그대로 유지
             topicCardAdapter.setItems(fakeData.getTopics());
+
+            // 🟢 [수정됨] 성공했을 때도 토스트 메시지 띄우기!
+            showCustomToast("오늘의 추천 뉴스를 가져왔습니다 📈");
+
         } else {
-            Toast.makeText(this, "데이터를 가져오지 못했습니다.", Toast.LENGTH_SHORT).show();
+            // 실패 시 토스트
+            showCustomToast("데이터를 가져오지 못했습니다.");
         }
 
         progressBar.setVisibility(View.GONE);
 
-        // -------------------------------------------------------------
-        // [네트워크 모드] 나중에 실제 서버와 통신할 때는 아래 주석을 풀고 위 코드를 지우세요.
-        // -------------------------------------------------------------
-        /*
+        /* 네트워크 코드 (주석 처리됨)
         ApiService api = RetrofitClient.getApiService();
-        FeedRequest request = new FeedRequest("user1", Arrays.asList("005930", "000660"));
-
+        ...
         api.getFeed(request).enqueue(new Callback<FeedResponse>() {
             @Override
-            public void onResponse(Call<FeedResponse> call, Response<FeedResponse> response) {
+            public void onResponse(...) {
                 progressBar.setVisibility(View.GONE);
                 if (response.isSuccessful() && response.body() != null) {
-                    FeedResponse feed = response.body();
-                    newsAdapter.setItems(feed.getNews());
-                    stockTipAdapter.setItems(feed.getStockTips());
-                    topicCardAdapter.setItems(feed.getTopics());
+                    ...
+                    // 🟢 네트워크 성공 시에도 추가 가능
+                    showCustomToast("최신 뉴스로 업데이트되었습니다.");
                 } else {
-                    Toast.makeText(MainActivity.this, "응답 오류", Toast.LENGTH_SHORT).show();
+                    showCustomToast("응답 오류");
                 }
             }
-
             @Override
-            public void onFailure(Call<FeedResponse> call, Throwable t) {
+            public void onFailure(...) {
                 progressBar.setVisibility(View.GONE);
-                Toast.makeText(MainActivity.this, "네트워크 오류", Toast.LENGTH_SHORT).show();
+                showCustomToast("네트워크 오류");
             }
         });
         */
+    }
+
+    // 커스텀 토스트 함수
+    private void showCustomToast(String message) {
+        android.view.LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.view_custom_toast, null);
+
+        android.widget.TextView text = layout.findViewById(R.id.tvToastMessage);
+        text.setText(message);
+
+        android.widget.Toast toast = new android.widget.Toast(getApplicationContext());
+        toast.setDuration(android.widget.Toast.LENGTH_SHORT);
+        toast.setView(layout);
+        toast.show();
     }
 }
