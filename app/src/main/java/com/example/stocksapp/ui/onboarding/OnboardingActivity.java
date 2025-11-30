@@ -16,29 +16,19 @@ import com.example.stocksapp.ui.main.MainActivity;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * 온보딩 화면
- * - 4단계 질문으로 사용자 프로필/관심 키워드를 수집하는 "UI 껍데기"만 구현
- * - API, 서버 연동, DB 저장 등은 전부 빠진 상태
- *   나중에 백엔드/네트워크 담당이 이 클래스 안의 선택 결과를 가져다 쓰면 됨.
- */
 public class OnboardingActivity extends AppCompatActivity {
 
-    // 단계 컨테이너
     private LinearLayout layoutStep1;
     private LinearLayout layoutStep2;
     private LinearLayout layoutStep3;
     private LinearLayout layoutStep4;
 
-    // 상단 텍스트
     private TextView tvTitle;
     private TextView tvSubtitle;
 
-    // 하단 버튼
     private Button btnPrev;
     private Button btnNext;
 
-    // 현재 단계 (1~4)
     private int currentStep = 1;
 
     // 1단계: 관심 분야(대분류) 선택 결과 (복수 선택)
@@ -75,25 +65,15 @@ public class OnboardingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_onboarding);
 
-        // 뷰 초기화
         initViews();
-
-        // 각 단계별 버튼 클릭 리스너 세팅
         setupStep1Buttons();
         setupStep2Buttons();
         setupStep3Buttons();
         setupStep4Buttons();
-
-        // 하단 이전/다음 버튼 동작 설정
         setupNavigationButtons();
-
-        // 처음에는 1단계 화면을 보여줌
         showStep(1);
     }
 
-    /**
-     * 레이아웃에 있는 뷰들을 findViewById 로 연결하는 부분
-     */
     private void initViews() {
         tvTitle = findViewById(R.id.tvTitle);
         tvSubtitle = findViewById(R.id.tvSubtitle);
@@ -144,23 +124,86 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     /**
-     * 1단계(관심 분야) 버튼 클릭 리스너
-     * - 복수 선택 가능
+     * 1단계(관심 분야)
+     * - 전체 경제 선택 시 나머지 카테고리 해제 + 비활성화
+     * - 다른 카테고리 선택 시 전체 경제 해제
      */
     private void setupStep1Buttons() {
-        setupMultiSelectButton(btnCategoryAllEconomy, selectedCategories, "전체 경제");
-        setupMultiSelectButton(btnCategoryStock, selectedCategories, "주식·증권");
-        setupMultiSelectButton(btnCategoryIndustry, selectedCategories, "산업·기업");
-        setupMultiSelectButton(btnCategoryRealEstate, selectedCategories, "부동산");
-        setupMultiSelectButton(btnCategoryFinance, selectedCategories, "금융");
-        setupMultiSelectButton(btnCategoryGlobal, selectedCategories, "국제·글로벌");
-        setupMultiSelectButton(btnCategoryIt, selectedCategories, "기술·IT");
-        setupMultiSelectButton(btnCategoryCommodity, selectedCategories, "원자재");
+        // 전체 경제
+        btnCategoryAllEconomy.setOnClickListener(v -> {
+            boolean nowSelected = !btnCategoryAllEconomy.isSelected();
+            btnCategoryAllEconomy.setSelected(nowSelected);
+
+            selectedCategories.clear();
+
+            if (nowSelected) {
+                selectedCategories.add("전체 경제");
+                clearStep1OtherSelections();
+                setStep1OtherEnabled(false);
+            } else {
+                setStep1OtherEnabled(true);
+            }
+        });
+
+        // 나머지 카테고리들
+        setupCategoryButton(btnCategoryStock, "주식·증권");
+        setupCategoryButton(btnCategoryIndustry, "산업·기업");
+        setupCategoryButton(btnCategoryRealEstate, "부동산");
+        setupCategoryButton(btnCategoryFinance, "금융");
+        setupCategoryButton(btnCategoryGlobal, "국제·글로벌");
+        setupCategoryButton(btnCategoryIt, "기술·IT");
+        setupCategoryButton(btnCategoryCommodity, "원자재");
+    }
+
+    private void setupCategoryButton(Button button, String value) {
+        button.setOnClickListener(v -> {
+            boolean nowSelected = !button.isSelected();
+            button.setSelected(nowSelected);
+
+            if (nowSelected) {
+                if (!selectedCategories.contains(value)) {
+                    selectedCategories.add(value);
+                }
+                // 전체 경제는 자동 해제 + 다시 사용 가능
+                btnCategoryAllEconomy.setSelected(false);
+                selectedCategories.remove("전체 경제");
+                setStep1OtherEnabled(true);
+            } else {
+                selectedCategories.remove(value);
+            }
+        });
+    }
+
+    private void clearStep1OtherSelections() {
+        btnCategoryStock.setSelected(false);
+        btnCategoryIndustry.setSelected(false);
+        btnCategoryRealEstate.setSelected(false);
+        btnCategoryFinance.setSelected(false);
+        btnCategoryGlobal.setSelected(false);
+        btnCategoryIt.setSelected(false);
+        btnCategoryCommodity.setSelected(false);
+
+        selectedCategories.remove("주식·증권");
+        selectedCategories.remove("산업·기업");
+        selectedCategories.remove("부동산");
+        selectedCategories.remove("금융");
+        selectedCategories.remove("국제·글로벌");
+        selectedCategories.remove("기술·IT");
+        selectedCategories.remove("원자재");
+    }
+
+    private void setStep1OtherEnabled(boolean enabled) {
+        btnCategoryStock.setEnabled(enabled);
+        btnCategoryIndustry.setEnabled(enabled);
+        btnCategoryRealEstate.setEnabled(enabled);
+        btnCategoryFinance.setEnabled(enabled);
+        btnCategoryGlobal.setEnabled(enabled);
+        btnCategoryIt.setEnabled(enabled);
+        btnCategoryCommodity.setEnabled(enabled);
     }
 
     /**
-     * 2단계(투자 성향) 버튼 클릭 리스너
-     * - 단일 선택
+     * 2단계(투자 성향) 단일 선택
      */
     private void setupStep2Buttons() {
         View.OnClickListener profileClickListener = v -> {
@@ -168,7 +211,6 @@ public class OnboardingActivity extends AppCompatActivity {
             Button clicked = (Button) v;
             clicked.setSelected(true);
 
-            // 어떤 버튼이 선택됐는지에 따라 문자열 설정
             if (clicked == btnProfileSafe) {
                 selectedProfileType = "안정형";
             } else if (clicked == btnProfileNeutral) {
@@ -187,8 +229,7 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     /**
-     * 3단계(자주 보는 뉴스 유형) 버튼 클릭 리스너
-     * - 복수 선택 가능
+     * 3단계(뉴스 유형) 복수 선택
      */
     private void setupStep3Buttons() {
         setupMultiSelectButton(btnNewsStock, selectedNewsTypes, "주식 종목 뉴스");
@@ -200,8 +241,7 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     /**
-     * 4단계(관심 테마) 버튼 클릭 리스너
-     * - 복수 선택 가능, 선택은 옵션
+     * 4단계(테마) 복수 선택 (옵션)
      */
     private void setupStep4Buttons() {
         setupMultiSelectButton(btnThemeSemiconductor, selectedThemes, "반도체");
@@ -216,11 +256,6 @@ public class OnboardingActivity extends AppCompatActivity {
         setupMultiSelectButton(btnThemeTravel, selectedThemes, "여행/항공");
     }
 
-    /**
-     * 복수 선택 가능한 버튼에 공통으로 사용하는 토글 로직
-     * - 버튼 selected 상태만 변경해주면
-     *   bg_chip + chip_text_color(셋트로 만들어 둔 selector)가 알아서 색 바꿔줌
-     */
     private void setupMultiSelectButton(Button button, List<String> targetList, String value) {
         button.setOnClickListener(v -> {
             boolean nowSelected = !button.isSelected();
@@ -236,9 +271,6 @@ public class OnboardingActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 2단계 투자 성향 버튼들의 선택 상태를 전부 해제하는 메서드
-     */
     private void clearProfileSelection() {
         btnProfileSafe.setSelected(false);
         btnProfileNeutral.setSelected(false);
@@ -247,9 +279,8 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     /**
-     * 하단의 이전 / 다음 버튼 동작 설정
-     * - 이전: 한 단계 뒤로
-     * - 다음: 마지막 단계면 메인화면으로 이동
+     * 이전 / 다음 버튼
+     * - 다음 클릭 시 각 단계별 검증 추가
      */
     private void setupNavigationButtons() {
         btnPrev.setOnClickListener(v -> {
@@ -260,33 +291,51 @@ public class OnboardingActivity extends AppCompatActivity {
         });
 
         btnNext.setOnClickListener(v -> {
-            if (currentStep < 4) {
-                // 필요하다면 각 단계별로 "선택 안 했을 때 막기" 같은 검증 로직 추가 가능
-                // 예) 1단계에서 아무것도 선택 안 하면 다음으로 못 넘어가게:
-                // if (currentStep == 1 && selectedCategories.isEmpty()) { ... }
+            if (!validateCurrentStep()) {
+                return;
+            }
 
+            if (currentStep < 4) {
                 currentStep++;
                 showStep(currentStep);
             } else {
-                // 마지막 단계에서 "완료" 버튼 역할
                 completeOnboarding();
             }
         });
     }
 
     /**
-     * 현재 단계에 따라 레이아웃 visibility / 상단 텍스트 / 버튼 상태를 바꾸는 메서드
+     * 단계별 선택 검증
      */
+    private boolean validateCurrentStep() {
+        if (currentStep == 1) {
+            if (selectedCategories.isEmpty()) {
+                Toast.makeText(this, "관심 분야를 하나 이상 선택해 주세요.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } else if (currentStep == 2) {
+            if (selectedProfileType == null) {
+                Toast.makeText(this, "투자/소비 성향을 선택해 주세요.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        } else if (currentStep == 3) {
+            if (selectedNewsTypes.isEmpty()) {
+                Toast.makeText(this, "자주 보는 뉴스 유형을 하나 이상 선택해 주세요.", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+        }
+        // 4단계는 선택 옵션이라 검증 없음
+        return true;
+    }
+
     private void showStep(int step) {
         currentStep = step;
 
-        // 모든 단계 레이아웃을 우선 숨김
         layoutStep1.setVisibility(View.GONE);
         layoutStep2.setVisibility(View.GONE);
         layoutStep3.setVisibility(View.GONE);
         layoutStep4.setVisibility(View.GONE);
 
-        // 단계에 맞는 레이아웃만 보이게 처리
         switch (step) {
             case 1:
                 layoutStep1.setVisibility(View.VISIBLE);
@@ -294,21 +343,18 @@ public class OnboardingActivity extends AppCompatActivity {
                 btnPrev.setVisibility(View.INVISIBLE);
                 btnNext.setText("다음");
                 break;
-
             case 2:
                 layoutStep2.setVisibility(View.VISIBLE);
                 tvSubtitle.setText("투자/소비 성향을 선택하세요");
                 btnPrev.setVisibility(View.VISIBLE);
                 btnNext.setText("다음");
                 break;
-
             case 3:
                 layoutStep3.setVisibility(View.VISIBLE);
                 tvSubtitle.setText("자주 보는 경제 뉴스 유형을 선택하세요");
                 btnPrev.setVisibility(View.VISIBLE);
                 btnNext.setText("다음");
                 break;
-
             case 4:
                 layoutStep4.setVisibility(View.VISIBLE);
                 tvSubtitle.setText("관심 있는 산업/테마를 선택하세요 (건너뛰어도 됩니다)");
@@ -319,31 +365,16 @@ public class OnboardingActivity extends AppCompatActivity {
     }
 
     /**
-     * 온보딩 완료 처리
-     * - 지금은 단순히 메인 화면으로 이동만 함
-     * - 나중에 여기서 선택 결과를 서버로 보내거나, SharedPreferences에 저장하면 됨
+     * 온보딩 완료
+     * - 토스트는 제거 (중복 방지)
+     * - 선택 결과를 메인 액티비티로 전달
      */
     private void completeOnboarding() {
-        // 예시: 선택 결과를 잠깐 Toast로 보여줌 (임시 디버깅용)
-        // 실제 서비스에서는 지워도 되는 부분
-        String debugMessage = "카테고리: " + selectedCategories
-                + "\n성향: " + selectedProfileType
-                + "\n뉴스유형: " + selectedNewsTypes
-                + "\n테마: " + selectedThemes;
-        Toast.makeText(this, debugMessage, Toast.LENGTH_SHORT).show();
-
-        // 메인 화면으로 이동
         Intent intent = new Intent(this, MainActivity.class);
-
-        // 나중에 API/서버에서 사용할 수 있도록
-        // intent 로 선택값들을 넘기고 싶다면 아래처럼 putExtra 를 추가하면 됨.
-        // (지금은 껍데기만 필요하다 해서 예시만 주석으로 남겨둠)
-        //
-        // intent.putStringArrayListExtra("categories", new ArrayList<>(selectedCategories));
-        // intent.putExtra("profileType", selectedProfileType);
-        // intent.putStringArrayListExtra("newsTypes", new ArrayList<>(selectedNewsTypes));
-        // intent.putStringArrayListExtra("themes", new ArrayList<>(selectedThemes));
-
+        intent.putStringArrayListExtra("categories", new ArrayList<>(selectedCategories));
+        intent.putExtra("profileType", selectedProfileType);
+        intent.putStringArrayListExtra("newsTypes", new ArrayList<>(selectedNewsTypes));
+        intent.putStringArrayListExtra("themes", new ArrayList<>(selectedThemes));
         startActivity(intent);
         finish();
     }
