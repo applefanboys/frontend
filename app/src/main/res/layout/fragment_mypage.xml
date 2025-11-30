@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/tvMyTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="마이페이지"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="16dp" />
+
+        <LinearLayout
+            android:id="@+id/cardProfile"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="16dp"
+            android:background="@drawable/bg_card"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_mypage"
+                android:background="@drawable/bg_profile_circle"
+                android:padding="8dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView
+                    android:id="@+id/tvNickname"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="닉네임"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/black" />
+
+                <TextView
+                    android:id="@+id/tvEmail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="example@email.com"
+                    android:textSize="12sp"
+                    android:textColor="@color/gray_700" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cardFortune"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/bg_card"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:id="@+id/tvFortuneTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="오늘의 운세"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvFortune"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="오늘의 운세가 여기에 표시됩니다."
+                android:textSize="14sp"
+                android:textColor="@color/gray_800" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/cardSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:background="@drawable/bg_card">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="설정"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:id="@+id/tvMenuKeywordSetting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="선호 키워드 다시 설정하기"
+                android:textSize="14sp"
+                android:textColor="@color/gray_800"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/tvMenuLogout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="로그아웃"
+                android:textSize="14sp"
+                android:textColor="@color/gray_800" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

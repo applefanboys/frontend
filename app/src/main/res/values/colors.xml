@@ -11,10 +11,24 @@
     <color name="app_on_primary">#FFFFFF</color>
     <color name="app_secondary">#1D4ED8</color>
     <color name="app_on_secondary">#FFFFFF</color>
-    <color name="primary_blue">#2962FF</color>
     <color name="primary_blue_dark">#0D47A1</color>
-    <color name="gray_700">#616161</color>
-    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_50">#FAFAFA</color>
+    <color name="gray_100">#F5F5F5</color>
+    <color name="gray_200">#EEEEEE</color>
     <color name="gray_300">#E0E0E0</color>
+    <color name="gray_400">#BDBDBD</color>
+    <color name="gray_500">#9E9E9E</color>
+    <color name="gray_600">#757575</color>
+    <color name="gray_700">#616161</color>
+    <color name="gray_800">#424242</color>
+    <color name="gray_900">#212121</color>
 
+    <!-- 기존 앱에서 쓰던 기본 색과 조화되는 블루 톤 -->
+    <color name="primary_blue">#2D6FF8</color>
+    <color name="light_blue">#E8F0FE</color>
+    <color name="dark_blue">#1A56D6</color>
+
+    <!-- 백그라운드용 -->
+    <color name="bg_white">#FFFFFF</color>
+    <color name="bg_light">#F9FAFB</color>
 </resources>

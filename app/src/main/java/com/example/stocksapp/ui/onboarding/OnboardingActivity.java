@@ -3,9 +3,10 @@ package com.example.stocksapp.ui.onboarding;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
+import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -43,10 +44,10 @@ public class OnboardingActivity extends AppCompatActivity {
     private List<String> includeKeywords = new ArrayList<>();
     private List<String> excludeKeywords = new ArrayList<>();
 
-    // 자동완성용 기본 키워드 리스트
     private final List<String> baseKeywordList = Arrays.asList(
-            "삼성전자", "삼성SDI", "SK하이닉스", "현대차", "기아", "네이버", "카카오",
-            "반도체", "2차전지", "전기차", "환율", "나스닥", "금리", "부동산", "유가", "달러 인덱스"
+            "삼성전자", "삼성SDI", "SK하이닉스", "현대로템", "현대차", "기아", "네이버", "카카오",
+            "반도체", "2차전지", "전기차", "친환경차", "환율", "나스닥", "금리", "부동산",
+            "유가", "달러 인덱스"
     );
 
     private ArrayAdapter<String> suggestionAdapter;
@@ -71,9 +72,9 @@ public class OnboardingActivity extends AppCompatActivity {
         lvSuggestions.setAdapter(suggestionAdapter);
 
         setupStep(currentStep);
+        setupEnterListener();
         setupAutoComplete();
-        setupEnterKey();
-        setupListClick();
+        setupSuggestionClick();
 
         btnPrev.setOnClickListener(v -> {
             if (currentStep > 1) {
@@ -96,71 +97,111 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void setupStep(int step) {
         tvStepIndicator.setText(step + " / 3");
-
-        lvSuggestions.setVisibility(ListView.GONE);
+        lvSuggestions.setVisibility(View.GONE);
 
         if (step == 1) {
-            chipGroupKeywords.setVisibility(ChipGroup.GONE);
+            chipGroupKeywords.setVisibility(View.GONE);
             chipGroupKeywords.removeAllViews();
             etAnswer.setText(answerQ1);
             etAnswer.setHint("선호하는 뉴스 유형을 입력해주세요.");
+
             tvSubtitle.setText("선호하는 경제 뉴스 유형을 알려주세요.");
             tvQuestion.setText("어떤 경제 뉴스를 주로 보고 싶으세요?");
             tvDescription.setText("예: 전체 경제, 주식·증권, 산업·기업, 부동산 등");
+
             btnPrev.setEnabled(false);
             btnNext.setText("다음");
         }
 
         if (step == 2) {
-            chipGroupKeywords.setVisibility(ChipGroup.VISIBLE);
+            chipGroupKeywords.setVisibility(View.VISIBLE);
             reloadChips(includeKeywords);
             etAnswer.setText("");
-            etAnswer.setHint("키워드를 입력하면 자동완성이 표시되고 엔터로 추가");
+            etAnswer.setHint("키워드를 입력하면 자동완성이 나타나요");
+
             tvSubtitle.setText("특히 관심 있는 키워드를 알려주세요.");
             tvQuestion.setText("특히 관심 있는 키워드가 있나요?");
             tvDescription.setText("자동완성 추천을 눌러도 되고, 직접 입력 후 엔터로 추가할 수도 있어요.");
+
             btnPrev.setEnabled(true);
             btnNext.setText("다음");
         }
 
         if (step == 3) {
-            chipGroupKeywords.setVisibility(ChipGroup.VISIBLE);
+            chipGroupKeywords.setVisibility(View.VISIBLE);
             reloadChips(excludeKeywords);
             etAnswer.setText("");
             etAnswer.setHint("제외할 키워드를 입력해주세요");
+
             tvSubtitle.setText("보고 싶지 않은 키워드가 있나요?");
-            tvQuestion.setText("제외하고 싶은 키워드 추가");
-            tvDescription.setText("엔터 또는 자동완성으로 추가할 수 있어요. 없어도 넘어갈 수 있어요.");
+            tvQuestion.setText("제외하고 싶은 키워드를 입력해주세요.");
+            tvDescription.setText("엔터 또는 자동완성으로 추가할 수 있어요.");
+
             btnPrev.setEnabled(true);
             btnNext.setText("완료");
         }
     }
 
+    // ★ 한국어 조합 중 엔터를 무시하여 "엔터 1번만 반응" 만들기
+    private boolean isComposing() {
+        Editable editable = etAnswer.getText();
+        if (editable == null) return false;
+
+        Object[] composingSpans = editable.getSpans(0, editable.length(), Object.class);
+        for (Object span : composingSpans) {
+            if ((editable.getSpanFlags(span) & Spanned.SPAN_COMPOSING) != 0) {
+                return true; // 한글 조합 중
+            }
+        }
+        return false;
+    }
+
+    private void setupEnterListener() {
+        etAnswer.setOnEditorActionListener((v, actionId, event) -> {
+
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+
+                // ★ 조합 중이면 엔터 무시 → 한국어 1번 엔터 버그 해결
+                if (isComposing()) return true;
+
+                String text = etAnswer.getText().toString().trim();
+                if (text.isEmpty()) return true;
+
+                if (currentStep == 2) addKeyword(includeKeywords, text);
+                else if (currentStep == 3) addKeyword(excludeKeywords, text);
+
+                etAnswer.setText("");
+                lvSuggestions.setVisibility(View.GONE);
+                return true;
+            }
+
+            return false;
+        });
+    }
+
     private void setupAutoComplete() {
         etAnswer.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            public void onTextChanged(CharSequence s, int st, int b, int c) {
                 String input = s.toString().trim();
 
                 if (currentStep == 1 || input.isEmpty()) {
-                    lvSuggestions.setVisibility(ListView.GONE);
+                    lvSuggestions.setVisibility(View.GONE);
                     return;
                 }
 
                 filteredList.clear();
-                for (String keyword : baseKeywordList) {
-                    if (keyword.contains(input)) {
-                        filteredList.add(keyword);
-                    }
+                for (String k : baseKeywordList) {
+                    if (k.contains(input)) filteredList.add(k);
                 }
 
                 if (filteredList.isEmpty()) {
-                    lvSuggestions.setVisibility(ListView.GONE);
+                    lvSuggestions.setVisibility(View.GONE);
                 } else {
                     suggestionAdapter.notifyDataSetChanged();
-                    lvSuggestions.setVisibility(ListView.VISIBLE);
+                    lvSuggestions.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -168,39 +209,24 @@ public class OnboardingActivity extends AppCompatActivity {
         });
     }
 
-    private void setupListClick() {
-        lvSuggestions.setOnItemClickListener((parent, view, position, id) -> {
-            String keyword = filteredList.get(position);
-            if (currentStep == 2) addKeywordToList(includeKeywords, keyword);
-            else if (currentStep == 3) addKeywordToList(excludeKeywords, keyword);
+    private void setupSuggestionClick() {
+        lvSuggestions.setOnItemClickListener((p, v, pos, id) -> {
+            String keyword = filteredList.get(pos);
+
+            if (currentStep == 2) addKeyword(includeKeywords, keyword);
+            else if (currentStep == 3) addKeyword(excludeKeywords, keyword);
 
             etAnswer.setText("");
-            lvSuggestions.setVisibility(ListView.GONE);
+            lvSuggestions.setVisibility(View.GONE);
         });
     }
 
-    private void setupEnterKey() {
-        etAnswer.setOnEditorActionListener((v, actionId, event) -> {
-            if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
-                String text = etAnswer.getText().toString().trim();
-                if (!text.isEmpty()) {
-                    if (currentStep == 2) addKeywordToList(includeKeywords, text);
-                    else if (currentStep == 3) addKeywordToList(excludeKeywords, text);
-
-                    etAnswer.setText("");
-                    lvSuggestions.setVisibility(ListView.GONE);
-                }
-                return true;
-            }
-            return false;
-        });
-    }
-
-    private void addKeywordToList(List<String> target, String keyword) {
+    private void addKeyword(List<String> target, String keyword) {
         if (target.contains(keyword)) {
-            Toast.makeText(this, "이미 추가한 키워드입니다.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "이미 추가된 키워드입니다.", Toast.LENGTH_SHORT).show();
             return;
         }
+
         target.add(keyword);
         addChip(keyword, target);
     }
@@ -236,7 +262,7 @@ public class OnboardingActivity extends AppCompatActivity {
 
         if (currentStep == 2) {
             if (includeKeywords.isEmpty()) {
-                Toast.makeText(this, "키워드를 최소 1개 이상 추가해주세요.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "키워드를 1개 이상 추가해주세요.", Toast.LENGTH_SHORT).show();
                 return false;
             }
             return true;
@@ -250,6 +276,7 @@ public class OnboardingActivity extends AppCompatActivity {
         intent.putExtra("ONBOARD_Q1", answerQ1);
         intent.putExtra("ONBOARD_INCLUDE", TextUtils.join(",", includeKeywords));
         intent.putExtra("ONBOARD_EXCLUDE", TextUtils.join(",", excludeKeywords));
+
         startActivity(intent);
         finish();
     }

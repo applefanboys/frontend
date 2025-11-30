@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvMainTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="오늘의 키워드"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvKeywordLine"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="선택한 키워드가 여기에 표시됩니다"
+        android:textSize="14sp"
+        android:textColor="@color/gray_700"
+        android:layout_marginBottom="12dp" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/tvSectionTopic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="경제 주요 토픽"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:background="@color/white"
+        android:padding="8dp"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvTopicCard"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSectionStock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="AI 추천 종목"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:background="@color/white"
+        android:padding="8dp"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvStockTip"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSectionNews"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="뉴스"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:layout_marginBottom="8dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/white"
+        android:padding="8dp"
+        android:elevation="2dp"
+        android:orientation="vertical">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvNews"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </LinearLayout>
+
+</LinearLayout>

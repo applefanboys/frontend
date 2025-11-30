@@ -83,7 +83,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="내용을 입력해주세요."
+                android:singleLine="true"
+                android:imeOptions="actionDone"
                 android:inputType="text" />
+
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- 키워드 칩 영역: 2, 3단계에서만 사용 -->
@@ -104,7 +107,6 @@
             android:divider="@android:color/transparent"
             android:dividerHeight="0dp"
             android:visibility="gone" />
-
 
     </LinearLayout>
 
