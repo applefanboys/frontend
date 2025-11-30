@@ -161,12 +161,23 @@ public class OnboardingActivity extends AppCompatActivity {
 
             if (actionId == EditorInfo.IME_ACTION_DONE) {
 
-                // ★ 조합 중이면 엔터 무시 → 한국어 1번 엔터 버그 해결
+                // 한글 조합 중에는 엔터 무시
                 if (isComposing()) return true;
 
                 String text = etAnswer.getText().toString().trim();
                 if (text.isEmpty()) return true;
 
+                // ★ 임시 규칙: "a" 입력하면 a 칩 자동 생성
+                if (text.equals("a")) {
+                    if (currentStep == 2) addKeyword(includeKeywords, "a");
+                    else if (currentStep == 3) addKeyword(excludeKeywords, "a");
+
+                    etAnswer.setText("");
+                    lvSuggestions.setVisibility(View.GONE);
+                    return true;
+                }
+
+                // 일반 입력 처리
                 if (currentStep == 2) addKeyword(includeKeywords, text);
                 else if (currentStep == 3) addKeyword(excludeKeywords, text);
 
@@ -178,6 +189,7 @@ public class OnboardingActivity extends AppCompatActivity {
             return false;
         });
     }
+
 
     private void setupAutoComplete() {
         etAnswer.addTextChangedListener(new TextWatcher() {

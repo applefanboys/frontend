@@ -37,6 +37,8 @@
              지금은 API 연동 없이 UI만 있고
              버튼 클릭 시 온보딩Activity로 이동하는 임시 로직만 존재함.
         -->
+        <activity android:name=".ui.login.ResetPasswordActivity" />
+
         <activity
             android:name=".ui.login.SignUpActivity"
             android:exported="false" />
@@ -44,6 +46,7 @@
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true">
+
 
             <!-- 앱의 진입점(첫 화면) 설정 -->
             <intent-filter>
