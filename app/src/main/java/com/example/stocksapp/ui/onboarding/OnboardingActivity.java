@@ -1,11 +1,14 @@
 package com.example.stocksapp.ui.onboarding;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
@@ -16,6 +19,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.stocksapp.R;
+import com.example.stocksapp.data.model.PreferenceRequest;
+import com.example.stocksapp.network.ApiService;
+import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.main.MainActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -25,6 +31,11 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class OnboardingActivity extends AppCompatActivity {
 
@@ -83,6 +94,7 @@ public class OnboardingActivity extends AppCompatActivity {
             }
         });
 
+        // [핵심 변경] 다음 버튼 클릭 시 로직
         btnNext.setOnClickListener(v -> {
             if (!validateAndSave()) return;
 
@@ -90,6 +102,50 @@ public class OnboardingActivity extends AppCompatActivity {
                 currentStep++;
                 setupStep(currentStep);
             } else {
+                // 3단계(마지막)에서 버튼을 누르면 서버에 저장하고 메인으로 이동
+                savePreferencesAndGoMain();
+            }
+        });
+    }
+
+    // [NEW] 서버 저장 후 메인으로 이동하는 함수
+    private void savePreferencesAndGoMain() {
+        // 1. 저장된 UserID 가져오기
+        SharedPreferences sharedPref = getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+        int userId = sharedPref.getInt("USER_ID", -1);
+
+        if (userId == -1) {
+            Toast.makeText(this, "로그인 정보가 없습니다. 다시 로그인해주세요.", Toast.LENGTH_SHORT).show();
+            // 필요하다면 여기서 LoginActivity로 이동
+            return;
+        }
+
+        // 2. 요청 데이터 객체 생성
+        PreferenceRequest request = new PreferenceRequest(
+                answerQ1,
+                includeKeywords,
+                excludeKeywords
+        );
+
+        // 3. API 호출
+        ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+        apiService.completeOnboarding(userId, request).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    Log.d("ONBOARDING", "Success: Preferences Saved");
+                    goToMain(); // 성공 시 메인 이동
+                } else {
+                    Log.e("ONBOARDING", "Failed: " + response.code());
+                    Toast.makeText(OnboardingActivity.this, "저장에 실패했지만 메인으로 이동합니다.", Toast.LENGTH_SHORT).show();
+                    goToMain(); // 실패해도 유저 경험을 위해 이동
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("ONBOARDING", "Network Error: " + t.getMessage());
+                Toast.makeText(OnboardingActivity.this, "네트워크 오류. 메인으로 이동합니다.", Toast.LENGTH_SHORT).show();
                 goToMain();
             }
         });
@@ -142,7 +198,6 @@ public class OnboardingActivity extends AppCompatActivity {
         }
     }
 
-    // ★ 한국어 조합 중 엔터를 무시하여 "엔터 1번만 반응" 만들기
     private boolean isComposing() {
         Editable editable = etAnswer.getText();
         if (editable == null) return false;
@@ -150,7 +205,7 @@ public class OnboardingActivity extends AppCompatActivity {
         Object[] composingSpans = editable.getSpans(0, editable.length(), Object.class);
         for (Object span : composingSpans) {
             if ((editable.getSpanFlags(span) & Spanned.SPAN_COMPOSING) != 0) {
-                return true; // 한글 조합 중
+                return true;
             }
         }
         return false;
@@ -158,26 +213,21 @@ public class OnboardingActivity extends AppCompatActivity {
 
     private void setupEnterListener() {
         etAnswer.setOnEditorActionListener((v, actionId, event) -> {
-
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-
-                // 한글 조합 중에는 엔터 무시
                 if (isComposing()) return true;
 
                 String text = etAnswer.getText().toString().trim();
                 if (text.isEmpty()) return true;
 
-                // ★ 임시 규칙: "a" 입력하면 a 칩 자동 생성
+                // 임시: "a" 입력 시 테스트용
                 if (text.equals("a")) {
                     if (currentStep == 2) addKeyword(includeKeywords, "a");
                     else if (currentStep == 3) addKeyword(excludeKeywords, "a");
-
                     etAnswer.setText("");
                     lvSuggestions.setVisibility(View.GONE);
                     return true;
                 }
 
-                // 일반 입력 처리
                 if (currentStep == 2) addKeyword(includeKeywords, text);
                 else if (currentStep == 3) addKeyword(excludeKeywords, text);
 
@@ -185,11 +235,9 @@ public class OnboardingActivity extends AppCompatActivity {
                 lvSuggestions.setVisibility(View.GONE);
                 return true;
             }
-
             return false;
         });
     }
-
 
     private void setupAutoComplete() {
         etAnswer.addTextChangedListener(new TextWatcher() {
@@ -198,17 +246,14 @@ public class OnboardingActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int st, int b, int c) {
                 String input = s.toString().trim();
-
                 if (currentStep == 1 || input.isEmpty()) {
                     lvSuggestions.setVisibility(View.GONE);
                     return;
                 }
-
                 filteredList.clear();
                 for (String k : baseKeywordList) {
                     if (k.contains(input)) filteredList.add(k);
                 }
-
                 if (filteredList.isEmpty()) {
                     lvSuggestions.setVisibility(View.GONE);
                 } else {
@@ -216,7 +261,6 @@ public class OnboardingActivity extends AppCompatActivity {
                     lvSuggestions.setVisibility(View.VISIBLE);
                 }
             }
-
             @Override public void afterTextChanged(Editable s) {}
         });
     }
@@ -224,10 +268,8 @@ public class OnboardingActivity extends AppCompatActivity {
     private void setupSuggestionClick() {
         lvSuggestions.setOnItemClickListener((p, v, pos, id) -> {
             String keyword = filteredList.get(pos);
-
             if (currentStep == 2) addKeyword(includeKeywords, keyword);
             else if (currentStep == 3) addKeyword(excludeKeywords, keyword);
-
             etAnswer.setText("");
             lvSuggestions.setVisibility(View.GONE);
         });
@@ -238,7 +280,6 @@ public class OnboardingActivity extends AppCompatActivity {
             Toast.makeText(this, "이미 추가된 키워드입니다.", Toast.LENGTH_SHORT).show();
             return;
         }
-
         target.add(keyword);
         addChip(keyword, target);
     }
@@ -253,12 +294,10 @@ public class OnboardingActivity extends AppCompatActivity {
         chip.setText(text);
         chip.setCloseIconVisible(true);
         chip.setCheckable(false);
-
         chip.setOnCloseIconClickListener(v -> {
             chipGroupKeywords.removeView(chip);
             targetList.remove(text);
         });
-
         chipGroupKeywords.addView(chip);
     }
 
@@ -271,7 +310,6 @@ public class OnboardingActivity extends AppCompatActivity {
             }
             return true;
         }
-
         if (currentStep == 2) {
             if (includeKeywords.isEmpty()) {
                 Toast.makeText(this, "키워드를 1개 이상 추가해주세요.", Toast.LENGTH_SHORT).show();
@@ -279,7 +317,6 @@ public class OnboardingActivity extends AppCompatActivity {
             }
             return true;
         }
-
         return true;
     }
 
@@ -288,7 +325,6 @@ public class OnboardingActivity extends AppCompatActivity {
         intent.putExtra("ONBOARD_Q1", answerQ1);
         intent.putExtra("ONBOARD_INCLUDE", TextUtils.join(",", includeKeywords));
         intent.putExtra("ONBOARD_EXCLUDE", TextUtils.join(",", excludeKeywords));
-
         startActivity(intent);
         finish();
     }

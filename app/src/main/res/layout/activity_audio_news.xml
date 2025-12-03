@@ -21,74 +21,80 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/contentGroup"
+    <ScrollView
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
+        android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
+        android:fillViewport="true"
         app:layout_constraintTop_toBottomOf="@id/backButton"
         app:layout_constraintBottom_toTopOf="@id/playbackSeekBar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.5">
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <TextView
-            android:id="@+id/newsTitle"
+        <LinearLayout
+            android:id="@+id/contentGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:text="삼성전자, 반도체 위기 속 새로운 전략 발표"
-            android:textColor="@android:color/black"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+            android:orientation="vertical"
+            android:gravity="center_horizontal">
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/imageCardView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginEnd="16dp"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="4dp">
-
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <TextView
+                android:id="@+id/newsTitle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:text="뉴스 제목 예시"
+                android:textColor="@android:color/black"
+                android:textSize="24sp"
+                android:textStyle="bold" />
 
-                <ImageView
-                    android:id="@+id/newsImage"
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:contentDescription="뉴스 관련 이미지"
-                    android:scaleType="centerCrop"
-                    android:src="@drawable/samsung"
-                    app:layout_constraintDimensionRatio="16:9"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+            <androidx.cardview.widget.CardView
+                android:id="@+id/imageCardView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
 
-        </androidx.cardview.widget.CardView>
+                    <ImageView
+                        android:id="@+id/newsImage"
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:contentDescription="뉴스 이미지"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/samsung"
+                        app:layout_constraintDimensionRatio="16:9"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:id="@+id/newsSummary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="24dp"
-            android:layout_marginTop="32dp"
-            android:layout_marginEnd="24dp"
-            android:text="삼성전자가 반도체 시장의 불확실성에 대응하기 위해 파운드리와 시스템 LSI 사업 부문에서 새로운 기술 개발 및 투자 계획을 발표했습니다. 이는 미래 성장 동력 확보를 위한 중요한 전환점이 될 것으로 보입니다."
-            android:textColor="@android:color/black"
-            android:textSize="16sp" />
+                </androidx.constraintlayout.widget.ConstraintLayout>
+            </androidx.cardview.widget.CardView>
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/newsSummary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="32dp"
+                android:layout_marginEnd="24dp"
+                android:layout_marginBottom="24dp"
+                android:text="여기에 긴 요약 내용이 들어갑니다..."
+                android:textColor="@android:color/black"
+                android:textSize="16sp"
+                android:lineSpacingExtra="6dp" />
+
+        </LinearLayout>
+    </ScrollView>
 
     <SeekBar
         android:id="@+id/playbackSeekBar"
@@ -118,9 +124,8 @@
             android:layout_height="42dp"
             android:layout_marginEnd="24dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="이전 뉴스"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_skip_previous" />
+            android:src="@drawable/ic_skip_previous"
+            android:scaleType="centerInside"/>
 
         <ImageButton
             android:id="@+id/playPauseButton"
@@ -128,9 +133,8 @@
             android:layout_height="64dp"
             android:layout_margin="12dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="재생/일시정지"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_play" />
+            android:src="@drawable/ic_play"
+            android:scaleType="centerInside"/>
 
         <ImageButton
             android:id="@+id/nextButton"
@@ -138,9 +142,8 @@
             android:layout_height="42dp"
             android:layout_marginStart="24dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="다음 뉴스"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_skip_next" />
+            android:src="@drawable/ic_skip_next"
+            android:scaleType="centerInside"/>
 
     </LinearLayout>
 
