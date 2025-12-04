@@ -59,6 +59,28 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ui.login.ResetPasswordActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.login.ResetNewPasswordActivity"
+            android:exported="true">
+
+            <!-- 딥링크용 인텐트 필터 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- shoteconomy://reset-password?token=... 를 받기 위한 설정 -->
+                <data
+                    android:scheme="shorteconomy"
+                    android:host="reset-password" />
+            </intent-filter>
+        </activity>
+
+
     </application>
 
 
