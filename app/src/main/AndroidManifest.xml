@@ -11,50 +11,41 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:theme="@style/Theme.StocksApp">
 
-        <!-- 웹뷰 화면 (뉴스 상세보기용) -->
         <activity
             android:name=".ui.main.WebViewActivity"
             android:exported="false" />
 
-        <!-- 메인 화면 (키워드 선택 → 뉴스 목록이 들어있는 화면)
-             로그인 성공 후 / 온보딩 이후에 진입하게 됨 -->
         <activity
             android:name=".ui.main.MainActivity"
             android:exported="false" />
 
-        <!-- 오디오 뉴스 화면 (추가 기능 화면) -->
         <activity
             android:name=".ui.main.AudioNewsActivity"
             android:exported="false" />
 
-        <!-- 온보딩 화면 (앱 첫 사용자가 보는 소개/키워드 선택 화면)
-             로그인 → 온보딩 → 메인화면 이런 흐름으로 이동함 -->
         <activity
             android:name=".ui.onboarding.OnboardingActivity"
             android:exported="false" />
 
-        <!-- 로그인 화면 (앱의 첫 화면으로 설정됨)
-             지금은 API 연동 없이 UI만 있고
-             버튼 클릭 시 온보딩Activity로 이동하는 임시 로직만 존재함.
-        -->
         <activity
             android:name=".ui.login.SignUpActivity"
             android:exported="false" />
 
         <activity
+            android:name=".ui.login.ResetPasswordActivity"
+            android:exported="false" />
+
+
+        <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true">
-
-            <!-- 앱의 진입점(첫 화면) 설정 -->
             <intent-filter>
-                <!-- 앱 실행 시 먼저 실행되는 액션 -->
                 <action android:name="android.intent.action.MAIN" />
-
-                <!-- 홈 화면에서 노출되는 앱 아이콘을 통해 실행될 수 있음을 의미 -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
     </application>
+
 
 </manifest>
