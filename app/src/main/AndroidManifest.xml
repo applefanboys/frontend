@@ -58,16 +58,17 @@
         <activity android:name=".ui.login.ResetNewPasswordActivity"
             android:exported="true">
 
-            <intent-filter>
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
-                <!-- shortnews://reset-password?token=... -->
+                <!-- https://short-economy.store/reset-password?token=... -->
                 <data
-                    android:scheme="shortnews"
-                    android:host="reset-password" />
+                    android:scheme="https"
+                    android:host="api.short-economy.store"
+                    android:pathPrefix="/reset-password"/>
             </intent-filter>
         </activity>
 

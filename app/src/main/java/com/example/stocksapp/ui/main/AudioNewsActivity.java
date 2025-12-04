@@ -73,7 +73,7 @@ public class AudioNewsActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         prevButton = findViewById(R.id.prevButton);
         nextButton = findViewById(R.id.nextButton);
-        playPauseButton = findViewById(R.id.playPauseButton);
+        // playPauseButton = findViewById(R.id.playPauseButton);
         playbackSeekBar = findViewById(R.id.playbackSeekBar);
 
         newsTitle = findViewById(R.id.newsTitle);
