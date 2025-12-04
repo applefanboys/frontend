@@ -2,10 +2,7 @@ package com.example.stocksapp.ui.onboarding;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.Spanned;
-import android.text.TextUtils;
-import android.text.TextWatcher;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
@@ -16,6 +13,17 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.stocksapp.R;
+import com.example.stocksapp.data.model.Category;
+import com.example.stocksapp.data.model.Q1CategoriesResponse;
+import com.example.stocksapp.data.model.Q1AnswerRequest;
+import com.example.stocksapp.data.model.Q1AnswerResponse;
+import com.example.stocksapp.data.model.Q2AnswerRequest;
+import com.example.stocksapp.data.model.Q2AnswerResponse;
+import com.example.stocksapp.data.model.Q3AnswerRequest;
+import com.example.stocksapp.data.model.Q3AnswerResponse;
+import com.example.stocksapp.ui.login.LoginActivity;
+import com.example.stocksapp.network.ApiService;
+import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.main.MainActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
@@ -26,270 +34,342 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class OnboardingActivity extends AppCompatActivity {
 
-    private TextView tvSubtitle;
-    private TextView tvStepIndicator;
-    private TextView tvQuestion;
-    private TextView tvDescription;
+    private TextView tvSubtitle, tvStepIndicator, tvQuestion, tvDescription;
     private TextInputEditText etAnswer;
-    private MaterialButton btnPrev;
-    private MaterialButton btnNext;
-    private ChipGroup chipGroupKeywords;
+    private MaterialButton btnPrev, btnNext;
+    private ChipGroup chipGroup;
     private ListView lvSuggestions;
 
     private int currentStep = 1;
+    private int userId;
 
-    private String answerQ1 = "";
-    private List<String> includeKeywords = new ArrayList<>();
-    private List<String> excludeKeywords = new ArrayList<>();
+    private ApiService apiService;
 
-    private final List<String> baseKeywordList = Arrays.asList(
-            "삼성전자", "삼성SDI", "SK하이닉스", "현대로템", "현대차", "기아", "네이버", "카카오",
-            "반도체", "2차전지", "전기차", "친환경차", "환율", "나스닥", "금리", "부동산",
-            "유가", "달러 인덱스"
+    // 저장 리스트
+    private final List<Integer> selectedCategoryIds = new ArrayList<>();
+    private final List<String> selectedKeywords = new ArrayList<>();
+    private final List<String> excludedKeywords = new ArrayList<>();
+
+    private List<Category> q1Categories = new ArrayList<>();
+    private boolean categoriesLoaded = false; // <-- 중복 로딩 여부 체크
+
+    // 추천 단어
+    private final List<String> SUGGESTIONS = Arrays.asList(
+            "반도체", "AI", "2차전지", "메타버스", "부동산", "정치",
+            "경제정책", "재테크", "자율주행", "친환경", "물가"
     );
-
-    private ArrayAdapter<String> suggestionAdapter;
-    private List<String> filteredList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.e("ONBOARDING_DEBUG", "onCreate userId = " + userId);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_onboarding);
 
+        apiService = RetrofitClient.getApiService();
+        userId = getIntent().getIntExtra(LoginActivity.EXTRA_USER_ID, -1);
+        currentStep = getIntent().getIntExtra(LoginActivity.EXTRA_START_STEP, 1);
+        userId = getIntent().getIntExtra(LoginActivity.EXTRA_USER_ID, -1);
+        currentStep = getIntent().getIntExtra(LoginActivity.EXTRA_START_STEP, 1);
+
+
+        if (userId == -1) {
+            Toast.makeText(this, "user_id 누락됨", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+
+        initViews();
+        updateUI();
+
+        // Q1 카테고리는 앱 로딩 시 한 번만 불러오도록 변경
+        loadQ1Categories();
+    }
+
+    private void initViews() {
         tvSubtitle = findViewById(R.id.tvSubtitle);
         tvStepIndicator = findViewById(R.id.tvStepIndicator);
         tvQuestion = findViewById(R.id.tvQuestion);
         tvDescription = findViewById(R.id.tvDescription);
         etAnswer = findViewById(R.id.etAnswer);
+        chipGroup = findViewById(R.id.chipGroupKeywords);
+        lvSuggestions = findViewById(R.id.lvSuggestions);
         btnPrev = findViewById(R.id.btnPrev);
         btnNext = findViewById(R.id.btnNext);
-        chipGroupKeywords = findViewById(R.id.chipGroupKeywords);
-        lvSuggestions = findViewById(R.id.lvSuggestions);
-
-        suggestionAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, filteredList);
-        lvSuggestions.setAdapter(suggestionAdapter);
-
-        setupStep(currentStep);
-        setupEnterListener();
-        setupAutoComplete();
-        setupSuggestionClick();
 
         btnPrev.setOnClickListener(v -> {
             if (currentStep > 1) {
                 currentStep--;
-                setupStep(currentStep);
+                updateUI();
             }
         });
 
-        btnNext.setOnClickListener(v -> {
-            if (!validateAndSave()) return;
-
-            if (currentStep < 3) {
-                currentStep++;
-                setupStep(currentStep);
-            } else {
-                goToMain();
-            }
-        });
+        btnNext.setOnClickListener(v -> handleNext());
     }
 
-    private void setupStep(int step) {
-        tvStepIndicator.setText(step + " / 3");
+    // -----------------------------------------------------------
+    // UI 갱신
+    // -----------------------------------------------------------
+    private void updateUI() {
+        tvStepIndicator.setText("Step " + currentStep + " / 3");
+
+        chipGroup.removeAllViews();
         lvSuggestions.setVisibility(View.GONE);
+        etAnswer.setVisibility(View.GONE);
 
-        if (step == 1) {
-            chipGroupKeywords.setVisibility(View.GONE);
-            chipGroupKeywords.removeAllViews();
-            etAnswer.setText(answerQ1);
-            etAnswer.setHint("선호하는 뉴스 유형을 입력해주세요.");
-
-            tvSubtitle.setText("선호하는 경제 뉴스 유형을 알려주세요.");
-            tvQuestion.setText("어떤 경제 뉴스를 주로 보고 싶으세요?");
-            tvDescription.setText("예: 전체 경제, 주식·증권, 산업·기업, 부동산 등");
-
-            btnPrev.setEnabled(false);
-            btnNext.setText("다음");
-        }
-
-        if (step == 2) {
-            chipGroupKeywords.setVisibility(View.VISIBLE);
-            reloadChips(includeKeywords);
-            etAnswer.setText("");
-            etAnswer.setHint("키워드를 입력하면 자동완성이 나타나요");
-
-            tvSubtitle.setText("특히 관심 있는 키워드를 알려주세요.");
-            tvQuestion.setText("특히 관심 있는 키워드가 있나요?");
-            tvDescription.setText("자동완성 추천을 눌러도 되고, 직접 입력 후 엔터로 추가할 수도 있어요.");
-
-            btnPrev.setEnabled(true);
-            btnNext.setText("다음");
-        }
-
-        if (step == 3) {
-            chipGroupKeywords.setVisibility(View.VISIBLE);
-            reloadChips(excludeKeywords);
-            etAnswer.setText("");
-            etAnswer.setHint("제외할 키워드를 입력해주세요");
-
-            tvSubtitle.setText("보고 싶지 않은 키워드가 있나요?");
-            tvQuestion.setText("제외하고 싶은 키워드를 입력해주세요.");
-            tvDescription.setText("엔터 또는 자동완성으로 추가할 수 있어요.");
-
-            btnPrev.setEnabled(true);
-            btnNext.setText("완료");
-        }
+        if (currentStep == 1) showStep1();
+        else if (currentStep == 2) showStep2();
+        else showStep3();
     }
 
-    // ★ 한국어 조합 중 엔터를 무시하여 "엔터 1번만 반응" 만들기
-    private boolean isComposing() {
-        Editable editable = etAnswer.getText();
-        if (editable == null) return false;
+    // -----------------------------------------------------------
+    // Q1 카테고리 서버 한 번만 로딩
+    // -----------------------------------------------------------
+    private void loadQ1Categories() {
+        if (categoriesLoaded) return;
 
-        Object[] composingSpans = editable.getSpans(0, editable.length(), Object.class);
-        for (Object span : composingSpans) {
-            if ((editable.getSpanFlags(span) & Spanned.SPAN_COMPOSING) != 0) {
-                return true; // 한글 조합 중
-            }
-        }
-        return false;
-    }
-
-    private void setupEnterListener() {
-        etAnswer.setOnEditorActionListener((v, actionId, event) -> {
-
-            if (actionId == EditorInfo.IME_ACTION_DONE) {
-
-                // 한글 조합 중에는 엔터 무시
-                if (isComposing()) return true;
-
-                String text = etAnswer.getText().toString().trim();
-                if (text.isEmpty()) return true;
-
-                // ★ 임시 규칙: "a" 입력하면 a 칩 자동 생성
-                if (text.equals("a")) {
-                    if (currentStep == 2) addKeyword(includeKeywords, "a");
-                    else if (currentStep == 3) addKeyword(excludeKeywords, "a");
-
-                    etAnswer.setText("");
-                    lvSuggestions.setVisibility(View.GONE);
-                    return true;
+        apiService.getQ1Categories().enqueue(new Callback<Q1CategoriesResponse>() {
+            @Override
+            public void onResponse(Call<Q1CategoriesResponse> call, Response<Q1CategoriesResponse> response) {
+                if (!response.isSuccessful() || response.body() == null) {
+                    Toast.makeText(OnboardingActivity.this, "카테고리 로드 실패", Toast.LENGTH_SHORT).show();
+                    return;
                 }
 
-                // 일반 입력 처리
-                if (currentStep == 2) addKeyword(includeKeywords, text);
-                else if (currentStep == 3) addKeyword(excludeKeywords, text);
+                q1Categories = response.body().getCategories();
+                categoriesLoaded = true;
 
-                etAnswer.setText("");
-                lvSuggestions.setVisibility(View.GONE);
-                return true;
+                if (currentStep == 1) renderQ1Chips();
             }
 
+            @Override
+            public void onFailure(Call<Q1CategoriesResponse> call, Throwable t) {
+                Toast.makeText(OnboardingActivity.this, "네트워크 오류: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // STEP 1: 카테고리 선택
+    // -----------------------------------------------------------
+    private void showStep1() {
+        tvSubtitle.setText("관심 분야");
+        tvQuestion.setText("어떤 분야에 관심이 있나요?");
+        tvDescription.setText("하나 이상 선택하세요.");
+
+        chipGroup.setVisibility(View.VISIBLE);
+
+        if (categoriesLoaded) {
+            renderQ1Chips();
+        }
+    }
+
+    private void renderQ1Chips() {
+        chipGroup.removeAllViews();
+
+        for (Category c : q1Categories) {
+            Chip chip = new Chip(this);
+            chip.setText(c.getLabel());
+            chip.setCheckable(true);
+
+            int id = c.getId();
+
+            // 이미 선택되어 있으면 체크 유지
+            if (selectedCategoryIds.contains(id)) {
+                chip.setChecked(true);
+            }
+
+            chip.setOnCheckedChangeListener((button, checked) -> {
+                if (checked) {
+                    if (!selectedCategoryIds.contains(id)) {
+                        selectedCategoryIds.add(id);
+                    }
+                } else {
+                    selectedCategoryIds.remove(Integer.valueOf(id));
+                }
+            });
+
+            chipGroup.addView(chip);
+        }
+
+    }
+
+
+    private void submitQ1() {
+        Log.e("Q1_DEBUG", "selectedCategoryIds = " + selectedCategoryIds.toString());
+
+        if (selectedCategoryIds.isEmpty()) {
+            Toast.makeText(this, "카테고리를 최소 1개 선택하세요!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Q1AnswerRequest req = new Q1AnswerRequest(selectedCategoryIds);
+
+        apiService.postQ1Answer(userId, req).enqueue(new Callback<Q1AnswerResponse>() {
+            @Override
+            public void onResponse(Call<Q1AnswerResponse> call, Response<Q1AnswerResponse> response) {
+                if (!response.isSuccessful()) {
+                    Toast.makeText(OnboardingActivity.this, "Q1 저장 실패", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                currentStep = 2;
+                updateUI();
+            }
+
+            @Override
+            public void onFailure(Call<Q1AnswerResponse> call, Throwable t) {
+                Toast.makeText(OnboardingActivity.this, "네트워크 오류", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // STEP 2
+    // -----------------------------------------------------------
+    private void showStep2() {
+        tvSubtitle.setText("키워드 설정");
+        tvQuestion.setText("관심 있는 키워드를 입력하세요");
+        tvDescription.setText("여러 개 입력할 수 있어요.");
+
+        chipGroup.setVisibility(View.VISIBLE);
+        etAnswer.setVisibility(View.VISIBLE);
+        lvSuggestions.setVisibility(View.VISIBLE);
+
+        chipGroup.removeAllViews();
+        for (String s : selectedKeywords) renderKeywordChip(s, selectedKeywords);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, SUGGESTIONS);
+        lvSuggestions.setAdapter(adapter);
+
+        lvSuggestions.setOnItemClickListener((parent, v, pos, id) -> addKeyword(SUGGESTIONS.get(pos)));
+
+        etAnswer.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                String text = etAnswer.getText().toString().trim();
+                addKeyword(text);
+                etAnswer.setText("");
+                return true;
+            }
             return false;
         });
     }
 
-
-    private void setupAutoComplete() {
-        etAnswer.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int st, int c, int a) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int st, int b, int c) {
-                String input = s.toString().trim();
-
-                if (currentStep == 1 || input.isEmpty()) {
-                    lvSuggestions.setVisibility(View.GONE);
-                    return;
-                }
-
-                filteredList.clear();
-                for (String k : baseKeywordList) {
-                    if (k.contains(input)) filteredList.add(k);
-                }
-
-                if (filteredList.isEmpty()) {
-                    lvSuggestions.setVisibility(View.GONE);
-                } else {
-                    suggestionAdapter.notifyDataSetChanged();
-                    lvSuggestions.setVisibility(View.VISIBLE);
-                }
-            }
-
-            @Override public void afterTextChanged(Editable s) {}
-        });
+    private void addKeyword(String text) {
+        if (text == null || text.isEmpty()) return;
+        if (selectedKeywords.contains(text)) return;
+        selectedKeywords.add(text);
+        renderKeywordChip(text, selectedKeywords);
     }
 
-    private void setupSuggestionClick() {
-        lvSuggestions.setOnItemClickListener((p, v, pos, id) -> {
-            String keyword = filteredList.get(pos);
-
-            if (currentStep == 2) addKeyword(includeKeywords, keyword);
-            else if (currentStep == 3) addKeyword(excludeKeywords, keyword);
-
-            etAnswer.setText("");
-            lvSuggestions.setVisibility(View.GONE);
-        });
-    }
-
-    private void addKeyword(List<String> target, String keyword) {
-        if (target.contains(keyword)) {
-            Toast.makeText(this, "이미 추가된 키워드입니다.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        target.add(keyword);
-        addChip(keyword, target);
-    }
-
-    private void reloadChips(List<String> list) {
-        chipGroupKeywords.removeAllViews();
-        for (String k : list) addChip(k, list);
-    }
-
-    private void addChip(String text, List<String> targetList) {
+    private void renderKeywordChip(String text, List<String> store) {
         Chip chip = new Chip(this);
         chip.setText(text);
         chip.setCloseIconVisible(true);
-        chip.setCheckable(false);
-
         chip.setOnCloseIconClickListener(v -> {
-            chipGroupKeywords.removeView(chip);
-            targetList.remove(text);
+            chipGroup.removeView(chip);
+            store.remove(text);
+        });
+        chipGroup.addView(chip);
+    }
+
+    private void submitQ2() {
+        if (selectedKeywords.isEmpty()) {
+            Toast.makeText(this, "키워드를 입력하세요!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Q2AnswerRequest req = new Q2AnswerRequest(selectedKeywords);
+
+        apiService.postQ2Answer(userId, req).enqueue(new Callback<Q2AnswerResponse>() {
+            @Override
+            public void onResponse(Call<Q2AnswerResponse> call, Response<Q2AnswerResponse> response) {
+                if (response.isSuccessful()) {
+                    currentStep = 3;
+                    updateUI();
+                } else {
+                    Toast.makeText(OnboardingActivity.this, "Q2 저장 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Q2AnswerResponse> call, Throwable t) {
+                Toast.makeText(OnboardingActivity.this, "네트워크 오류", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // STEP 3
+    // -----------------------------------------------------------
+    private void showStep3() {
+        tvSubtitle.setText("제외 키워드");
+        tvQuestion.setText("보고 싶지 않은 키워드를 입력하세요");
+        tvDescription.setText("여러 개 입력할 수 있어요.");
+
+        chipGroup.setVisibility(View.VISIBLE);
+        etAnswer.setVisibility(View.VISIBLE);
+        lvSuggestions.setVisibility(View.VISIBLE);
+
+        chipGroup.removeAllViews();
+        for (String s : excludedKeywords) renderKeywordChip(s, excludedKeywords);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, SUGGESTIONS);
+        lvSuggestions.setAdapter(adapter);
+
+        lvSuggestions.setOnItemClickListener((parent, v, pos, id) -> {
+            addExcludeKeyword(SUGGESTIONS.get(pos));
         });
 
-        chipGroupKeywords.addView(chip);
+        etAnswer.setOnEditorActionListener((v, actionId, event) -> {
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                addExcludeKeyword(etAnswer.getText().toString().trim());
+                etAnswer.setText("");
+                return true;
+            }
+            return false;
+        });
     }
 
-    private boolean validateAndSave() {
-        if (currentStep == 1) {
-            answerQ1 = etAnswer.getText().toString().trim();
-            if (answerQ1.isEmpty()) {
-                Toast.makeText(this, "내용을 입력해주세요.", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            return true;
-        }
-
-        if (currentStep == 2) {
-            if (includeKeywords.isEmpty()) {
-                Toast.makeText(this, "키워드를 1개 이상 추가해주세요.", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            return true;
-        }
-
-        return true;
+    private void addExcludeKeyword(String text) {
+        if (text == null || text.isEmpty()) return;
+        if (excludedKeywords.contains(text)) return;
+        excludedKeywords.add(text);
+        renderKeywordChip(text, excludedKeywords);
     }
 
-    private void goToMain() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra("ONBOARD_Q1", answerQ1);
-        intent.putExtra("ONBOARD_INCLUDE", TextUtils.join(",", includeKeywords));
-        intent.putExtra("ONBOARD_EXCLUDE", TextUtils.join(",", excludeKeywords));
+    private void submitQ3() {
+        Q3AnswerRequest req = new Q3AnswerRequest(excludedKeywords);
 
-        startActivity(intent);
-        finish();
+        apiService.postQ3Answer(userId, req).enqueue(new Callback<Q3AnswerResponse>() {
+            @Override
+            public void onResponse(Call<Q3AnswerResponse> call, Response<Q3AnswerResponse> response) {
+                if (response.isSuccessful()) {
+                    startActivity(new Intent(OnboardingActivity.this, MainActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(OnboardingActivity.this, "Q3 저장 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Q3AnswerResponse> call, Throwable t) {
+                Toast.makeText(OnboardingActivity.this, "네트워크 오류", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // -----------------------------------------------------------
+    // NEXT 버튼
+    // -----------------------------------------------------------
+    private void handleNext() {
+        if (currentStep == 1) submitQ1();
+        else if (currentStep == 2) submitQ2();
+        else submitQ3();
     }
 }
