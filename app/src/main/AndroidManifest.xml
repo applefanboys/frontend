@@ -56,7 +56,7 @@
         </activity>
 
         <activity
-            android:name=".ui.login.ResetPasswordActivity"
+            android:name=".ui.login.ResetRequestActivity"
             android:exported="false" />
 
         <activity

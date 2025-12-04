@@ -97,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
 
         // 비밀번호 재설정 화면으로 이동
         tvGoResetPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, ResetPasswordActivity.class);
+            Intent intent = new Intent(LoginActivity.this, ResetRequestActivity.class);
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });

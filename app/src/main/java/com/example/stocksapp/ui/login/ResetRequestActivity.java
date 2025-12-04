@@ -27,8 +27,8 @@ public class ResetRequestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_reset_request);
 
-        etEmail = findViewById(R.id.etResetEmail);      // XML id에 맞춰 조정해줘
-        btnSend = findViewById(R.id.btnSendReset);      // XML id 맞춰 조정
+        etEmail = findViewById(R.id.etEmail);      // XML id에 맞춰 조정해줘
+        btnSend = findViewById(R.id.btnSendEmail);      // XML id 맞춰 조정
 
         btnSend.setOnClickListener(v -> requestResetMail());
     }
