@@ -30,17 +30,22 @@ public class LoginActivity extends AppCompatActivity {
     private MaterialButton btnLogin;
     private TextView tvGoSignUp;
     private TextView tvGoResetPassword;
-    private CheckBox cbAutoLogin; // 🔥 추가됨
+    private CheckBox cbAutoLogin;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // 🔥 자동 로그인 체크: 이미 로그인 유지 true면 바로 MainActivity로 이동
+        // 자동 로그인 여부 체크 → 온보딩 완료 여부에 따라 분기
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences onboardingPrefs = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
         boolean autoLogin = prefs.getBoolean("auto_login", false);
         if (autoLogin) {
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            boolean completed = onboardingPrefs.getBoolean("completed", false);
+            Intent intent = completed
+                    ? new Intent(LoginActivity.this, MainActivity.class)
+                    : new Intent(LoginActivity.this, OnboardingActivity.class);
+            startActivity(intent);
             finish();
             return;
         }
@@ -52,9 +57,8 @@ public class LoginActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         tvGoSignUp = findViewById(R.id.tvGoSignUp);
         tvGoResetPassword = findViewById(R.id.tvGoResetPassword);
-        cbAutoLogin = findViewById(R.id.cbAutoLogin); // 🔥 XML에서 추가해야 함
+        cbAutoLogin = findViewById(R.id.cbAutoLogin);
 
-        // 🔥 로그인 버튼 → 서버로 로그인 요청
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText().toString().trim();
             String password = etPassword.getText().toString().trim();
@@ -73,20 +77,23 @@ public class LoginActivity extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null) {
                         LoginResponse body = response.body();
 
-                        // 메시지 출력
                         String msg = body.getMessage();
                         Toast.makeText(LoginActivity.this,
                                 msg != null ? msg : "로그인 성공!",
                                 Toast.LENGTH_SHORT).show();
 
-                        // 🔥 자동 로그인 체크 저장
+                        // 로그인 정보 + 자동로그인 옵션 저장
                         SharedPreferences.Editor editor = prefs.edit();
                         editor.putString("email", email);
                         editor.putBoolean("auto_login", cbAutoLogin.isChecked());
                         editor.apply();
 
-                        // 🔥 온보딩 또는 메인 화면으로 이동
-                        Intent intent = new Intent(LoginActivity.this, OnboardingActivity.class);
+                        // 온보딩 완료 여부에 따라 다음 화면 결정
+                        SharedPreferences onboardingPrefs = getSharedPreferences("onboarding_prefs", MODE_PRIVATE);
+                        boolean completed = onboardingPrefs.getBoolean("completed", false);
+                        Intent intent = completed
+                                ? new Intent(LoginActivity.this, MainActivity.class)
+                                : new Intent(LoginActivity.this, OnboardingActivity.class);
                         startActivity(intent);
                         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
                         finish();
@@ -106,14 +113,12 @@ public class LoginActivity extends AppCompatActivity {
             });
         });
 
-        // 회원가입 화면으로 이동
         tvGoSignUp.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
 
-        // 비밀번호 재설정 화면으로 이동
         tvGoResetPassword.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, ResetPasswordActivity.class);
             startActivity(intent);

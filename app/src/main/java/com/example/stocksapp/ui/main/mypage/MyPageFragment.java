@@ -41,11 +41,8 @@ public class MyPageFragment extends Fragment {
             Intent intent = new Intent(getActivity(), ResetRequestActivity.class);
             startActivity(intent);
         });
-        SharedPreferences prefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-        prefs.edit().putBoolean("auto_login", false).apply();
 
-
-        // 🔥 로그아웃 버튼 클릭 시 서버 + 로컬 둘 다 정리
+        // 로그아웃 버튼: 서버 로그아웃 + 로컬 로그인 상태 정리
         tvLogout.setOnClickListener(v -> doLogout());
 
         return view;
@@ -57,24 +54,25 @@ public class MyPageFragment extends Fragment {
             @Override
             public void onResponse(Call<ResponseBody> call,
                                    Response<ResponseBody> response) {
-                // 성공/실패와 상관없이 로컬 상태 정리하고 로그인 화면으로
                 clearLoginState();
                 moveToLoginAndClear();
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                // 네트워크가 좀 꼬여도, 일단 앱 쪽 로그아웃은 시켜줌
                 clearLoginState();
                 moveToLoginAndClear();
             }
         });
     }
 
+    // 로그인 정보(user_prefs)만 지워서 자동로그인/이메일 상태만 초기화
+    // 온보딩(onboarding_prefs)은 그대로 두기 때문에 키워드는 유지됨
     private void clearLoginState() {
         if (getContext() == null) return;
+
         SharedPreferences prefs =
-                requireContext().getSharedPreferences("auth_prefs", Context.MODE_PRIVATE);
+                requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         prefs.edit().clear().apply();
     }
 

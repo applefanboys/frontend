@@ -12,6 +12,24 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchNewsMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="주요뉴스"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvUserKeywords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:textSize="13sp"
+            android:textColor="@color/primary_blue" />
+
+
         <!-- 오늘의 키워드 타이틀 -->
         <TextView
             android:id="@+id/tvMainTitle"

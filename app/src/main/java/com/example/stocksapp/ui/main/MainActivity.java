@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
             bottomNav.setSelectedItemId(R.id.navigation_home);
         }
 
-        showNewsTimeDialogIfNeeded();
+       // showNewsTimeDialogIfNeeded();//
     }
 
     private void createNotificationChannel() {

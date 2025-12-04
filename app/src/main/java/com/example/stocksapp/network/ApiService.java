@@ -13,11 +13,11 @@ import com.example.stocksapp.ui.main.AudioNewsActivity;
 
 import okhttp3.ResponseBody;
 
-
-
+import retrofit2.http.GET;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public interface ApiService {
     @POST("feed")
@@ -35,6 +35,10 @@ public interface ApiService {
     Call<ResponseBody> resetPassword(@Body ResetPasswordRequest request);
     @POST("api/tts/shortform")
     Call<ResponseBody> getShortformTts(@Body AudioNewsActivity body);
+    @GET("/api/keywords/today_keywords")
+    Call<KeywordResponse> getTodayKeywords(
+            @Query("user_id") int userId
+    );
 
 
 
