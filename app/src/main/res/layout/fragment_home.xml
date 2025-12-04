@@ -1,112 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/white"
-    android:padding="16dp">
-
-    <TextView
-        android:id="@+id/tvMainTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="오늘의 키워드"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="4dp" />
-
-    <TextView
-        android:id="@+id/tvKeywordLine"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="선택한 키워드가 여기에 표시됩니다"
-        android:textSize="14sp"
-        android:textColor="@color/gray_700"
-        android:layout_marginBottom="12dp" />
-
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:visibility="gone"
-        android:layout_marginBottom="12dp" />
-
-    <TextView
-        android:id="@+id/tvSectionTopic"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="경제 주요 토픽"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="8dp" />
+    android:fillViewport="true"
+    android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:background="@color/white"
-        android:padding="8dp"
-        android:elevation="2dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_marginBottom="16dp">
+        android:padding="16dp">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvTopicCard"
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchNewsMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="주요뉴스"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp" />
+
+        <TextView
+            android:id="@+id/tvUserKeywords"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="4dp"
+            android:textSize="13sp"
+            android:textColor="@color/primary_blue" />
+
+
+        <!-- 오늘의 키워드 타이틀 -->
+        <TextView
+            android:id="@+id/tvMainTitle"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="오늘의 키워드"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="4dp" />
 
-    <TextView
-        android:id="@+id/tvSectionStock"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="AI 추천 종목"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="8dp" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:background="@color/white"
-        android:padding="8dp"
-        android:elevation="2dp"
-        android:orientation="vertical"
-        android:layout_marginBottom="16dp">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvStockTip"
+        <TextView
+            android:id="@+id/tvKeywordLine"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="선택한 키워드가 여기에 표시됩니다"
+            android:textSize="14sp"
+            android:textColor="@color/gray_700"
+            android:layout_marginBottom="12dp" />
 
-    <TextView
-        android:id="@+id/tvSectionNews"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="뉴스"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="@color/black"
-        android:layout_marginBottom="8dp" />
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp" />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@color/white"
-        android:padding="8dp"
-        android:elevation="2dp"
-        android:orientation="vertical">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvNews"
+        <!-- 경제 주요 토픽 -->
+        <TextView
+            android:id="@+id/tvSectionTopic"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="경제 주요 토픽"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
 
-</LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp"
+            android:background="@color/white"
+            android:padding="8dp"
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvTopicCard"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+        <!-- AI 추천 종목 : 높이 살짝 줄임 -->
+        <TextView
+            android:id="@+id/tvSectionStock"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="AI 추천 종목"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:background="@color/white"
+            android:padding="8dp"
+            android:elevation="2dp"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStockTip"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+        </LinearLayout>
+
+        <!-- 뉴스 카드 -->
+        <TextView
+            android:id="@+id/tvSectionNews"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="뉴스"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/white"
+            android:padding="8dp"
+            android:elevation="2dp"
+            android:orientation="vertical">
+
+            <!-- 한 개의 슬라이드 버튼(Switch) + 양쪽 레이블 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:id="@+id/tvToggleMain"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="주요 뉴스"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/swNewsMode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="false" />
+
+                <TextView
+                    android:id="@+id/tvToggleUser"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="사용자 맞춤 뉴스"
+                    android:textSize="14sp"
+                    android:textColor="@color/gray_500" />
+            </LinearLayout>
+
+            <!-- 실제 뉴스 리스트: 화면 전체 스크롤과 함께 내려가도록 wrap_content -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvNews"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

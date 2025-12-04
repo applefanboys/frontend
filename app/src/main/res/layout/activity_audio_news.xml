@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,6 +9,7 @@
     android:padding="4dp"
     tools:context=".ui.main.AudioNewsActivity">
 
+    <!-- 뒤로가기 버튼 -->
     <ImageButton
         android:id="@+id/backButton"
         android:layout_width="32dp"
@@ -21,6 +23,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 가운데 내용 영역 (제목, 이미지, 요약) -->
     <LinearLayout
         android:id="@+id/contentGroup"
         android:layout_width="0dp"
@@ -74,7 +77,6 @@
                     app:layout_constraintEnd_toEndOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
-
         </androidx.cardview.widget.CardView>
 
         <TextView
@@ -90,6 +92,7 @@
 
     </LinearLayout>
 
+    <!-- 재생 위치 SeekBar -->
     <SeekBar
         android:id="@+id/playbackSeekBar"
         android:layout_width="0dp"
@@ -101,6 +104,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- 하단 재생 컨트롤 영역 -->
     <LinearLayout
         android:id="@+id/playbackControls"
         android:layout_width="0dp"
@@ -112,6 +116,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+        <!-- 이전 뉴스 버튼 -->
         <ImageButton
             android:id="@+id/prevButton"
             android:layout_width="42dp"
@@ -122,16 +127,17 @@
             android:scaleType="centerInside"
             android:src="@drawable/ic_skip_previous" />
 
+        <!-- 재생/일시정지 버튼 (자바 코드에서 사용하는 playPauseButton) -->
         <ImageButton
             android:id="@+id/playPauseButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_margin="12dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="재생/일시정지"
             android:scaleType="centerInside"
             android:src="@drawable/ic_play" />
 
+        <!-- 다음 뉴스 버튼 -->
         <ImageButton
             android:id="@+id/nextButton"
             android:layout_width="42dp"

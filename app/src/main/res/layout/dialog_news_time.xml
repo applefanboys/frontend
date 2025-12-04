@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/bg_dialog_rounded">
+
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="매일 뉴스를 볼 시간을 고르세요"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#111111"
+        android:gravity="center"
+        android:layout_marginBottom="4dp" />
+
+    <TextView
+        android:id="@+id/tvSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="뉴스보이에게 뉴스를 받을 시간을 선택하세요"
+        android:textSize="13sp"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:id="@+id/layoutRoutine1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:layout_marginTop="4dp"
+        android:background="#F4F5F7">
+
+        <ImageView
+            android:id="@+id/ivCheck1"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_check_off"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="출퇴근 루틴"
+            android:textSize="14sp"
+            android:textColor="#222222" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutRoutine2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:background="#F4F5F7">
+
+        <ImageView
+            android:id="@+id/ivCheck2"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_check_off"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="식후 루틴"
+            android:textSize="14sp"
+            android:textColor="#222222" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutRoutine3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:layout_marginTop="8dp"
+        android:background="#F4F5F7">
+
+        <ImageView
+            android:id="@+id/ivCheck3"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_check_off"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="잠자리 루틴"
+            android:textSize="14sp"
+            android:textColor="#222222" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvTimeAm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="아침 시간: 08:00"
+        android:textSize="14sp"
+        android:textColor="#333333" />
+
+    <TextView
+        android:id="@+id/tvTimePm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="저녁 시간: 18:30"
+        android:textSize="14sp"
+        android:textColor="#333333" />
+
+    <Button
+        android:id="@+id/btnConfirm"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="20dp"
+        android:text="확인"
+        android:textSize="15sp"
+        android:textColor="#FFFFFF"
+        android:background="#2454FF" />
+
+</LinearLayout>
