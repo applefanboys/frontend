@@ -55,6 +55,22 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.login.ResetNewPasswordActivity"
+            android:exported="true">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- shortnews://reset-password?token=... -->
+                <data
+                    android:scheme="shortnews"
+                    android:host="reset-password" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>
