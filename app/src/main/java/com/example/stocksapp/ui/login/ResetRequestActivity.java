@@ -46,6 +46,7 @@ public class ResetRequestActivity extends AppCompatActivity {
 
         api.forgotPassword(body).enqueue(new Callback<ResponseBody>() {
             @Override
+
             public void onResponse(Call<ResponseBody> call,
                                    Response<ResponseBody> response) {
 
@@ -61,6 +62,7 @@ public class ResetRequestActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(ResetRequestActivity.this,
                             "요청 실패: " + response.code(),
+
                             Toast.LENGTH_SHORT).show();
                 }
             }
