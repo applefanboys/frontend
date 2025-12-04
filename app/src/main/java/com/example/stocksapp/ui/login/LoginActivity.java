@@ -17,21 +17,20 @@ public class LoginActivity extends AppCompatActivity {
     private TextInputEditText etPassword;
     private MaterialButton btnLogin;
     private TextView tvGoSignUp;
-    private TextView tvGoResetPassword; // 추가됨
+    private TextView tvGoResetPassword; // 재설정 버튼
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_login);
 
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         tvGoSignUp = findViewById(R.id.tvGoSignUp);
-        tvGoResetPassword = findViewById(R.id.tvGoResetPassword); // 연결
+        tvGoResetPassword = findViewById(R.id.tvGoResetPassword);
 
-        // 로그인 버튼 → 온보딩으로 이동
+        // 로그인 버튼 → 온보딩 화면
         btnLogin.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, OnboardingActivity.class);
             startActivity(intent);
@@ -39,16 +38,16 @@ public class LoginActivity extends AppCompatActivity {
             finish();
         });
 
-        // 회원가입 화면으로 이동
+        // 회원가입 화면
         tvGoSignUp.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });
 
-        // 비밀번호 재설정 화면으로 이동
+        // 비밀번호 재설정 버튼 → 이메일 입력 화면으로 이동
         tvGoResetPassword.setOnClickListener(v -> {
-            Intent intent = new Intent(LoginActivity.this, ResetPasswordActivity.class);
+            Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         });

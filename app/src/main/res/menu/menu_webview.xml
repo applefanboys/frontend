@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_share"
+        android:title="공유" />
+    <item
+        android:id="@+id/action_open_in_browser"
+        android:title="브라우저로 열기" />
+    <item
+        android:id="@+id/action_text_size"
+        android:title="글자 크기" />
+</menu>
