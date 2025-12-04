@@ -112,6 +112,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
+
         <ImageButton
             android:id="@+id/prevButton"
             android:layout_width="42dp"
@@ -121,16 +122,6 @@
             android:contentDescription="이전 뉴스"
             android:scaleType="centerInside"
             android:src="@drawable/ic_skip_previous" />
-
-        <ImageButton
-            android:id="@+id/playPauseButton"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_margin="12dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="재생/일시정지"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_play" />
 
         <ImageButton
             android:id="@+id/nextButton"
