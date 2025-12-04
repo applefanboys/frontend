@@ -20,6 +20,8 @@ import com.example.stocksapp.data.model.NewsItem;
 import com.example.stocksapp.data.model.StockTip;
 import com.example.stocksapp.data.model.TopicCard;
 import com.example.stocksapp.data.repo.FakeFeedRepository;
+import com.example.stocksapp.network.ApiService;
+import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.main.AudioNewsActivity;
 import com.example.stocksapp.ui.main.adapter.NewsAdapter;
 import com.example.stocksapp.ui.main.adapter.StockTipAdapter;
@@ -27,6 +29,10 @@ import com.example.stocksapp.ui.main.adapter.TopicCardAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
 
@@ -44,6 +50,7 @@ public class HomeFragment extends Fragment {
     private NewsAdapter newsAdapter;
     private StockTipAdapter stockTipAdapter;
     private TopicCardAdapter topicCardAdapter;
+    private ApiService apiService;
 
     @Nullable
     @Override
@@ -86,9 +93,38 @@ public class HomeFragment extends Fragment {
         rvStockTip.setAdapter(stockTipAdapter);
         rvTopicCard.setAdapter(topicCardAdapter);
 
+        apiService = RetrofitClient.getInstance().create(ApiService.class);
+
+        loadNewsFromServer();
+
         loadFeed();
 
         return view;
+    }
+
+    private void loadNewsFromServer() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        apiService.getTodayNews().enqueue(new Callback<List<NewsItem>>() {
+            @Override
+            public void onResponse(Call<List<NewsItem>> call, Response<List<NewsItem>> response) {
+                progressBar.setVisibility(View.GONE);
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<NewsItem> newsList = response.body();
+                    newsAdapter.setItems(newsList);
+                    tvKeywordLine.setText("추천된 실시간 경제 뉴스입니다.");
+                } else {
+                    tvKeywordLine.setText("뉴스 데이터를 불러오지 못했습니다.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<NewsItem>> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                tvKeywordLine.setText("서버 연결 실패");
+            }
+        });
     }
 
     private void loadFeed() {
