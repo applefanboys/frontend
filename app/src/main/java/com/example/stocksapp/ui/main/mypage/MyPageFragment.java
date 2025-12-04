@@ -41,6 +41,9 @@ public class MyPageFragment extends Fragment {
             Intent intent = new Intent(getActivity(), ResetRequestActivity.class);
             startActivity(intent);
         });
+        SharedPreferences prefs = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        prefs.edit().putBoolean("auto_login", false).apply();
+
 
         // 🔥 로그아웃 버튼 클릭 시 서버 + 로컬 둘 다 정리
         tvLogout.setOnClickListener(v -> doLogout());

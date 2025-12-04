@@ -67,6 +67,52 @@
             android:textSize="13sp"
             android:textColor="@color/gray_700" />
 
+        <!-- ✅ 1단계에서만 쓰는 뉴스 유형 ChipGroup -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupNewsType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:visibility="gone"
+            app:singleLine="false"
+            app:chipSpacingHorizontal="8dp"
+            app:chipSpacingVertical="8dp">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNewsAll"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="전체 경제"
+                android:checkable="true" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNewsStocks"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="주식·증권"
+                android:checkable="true" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNewsIndustry"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="산업·기업"
+                android:checkable="true" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNewsRealEstate"
+                style="@style/Widget.MaterialComponents.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="부동산"
+                android:checkable="true" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+        <!-- 2, 3단계에서 쓰는 텍스트 입력 -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilAnswer"
             android:layout_width="match_parent"
@@ -89,7 +135,7 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- 키워드 칩 영역: 2, 3단계에서만 사용 -->
+        <!-- 기존 키워드 칩 + 자동완성 ListView는 그대로 -->
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipGroupKeywords"
             android:layout_width="match_parent"
@@ -109,6 +155,7 @@
             android:visibility="gone" />
 
     </LinearLayout>
+
 
     <LinearLayout
         android:id="@+id/layoutBottomBar"

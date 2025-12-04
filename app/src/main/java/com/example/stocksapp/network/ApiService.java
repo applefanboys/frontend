@@ -1,5 +1,7 @@
 package com.example.stocksapp.network;
 
+import android.provider.MediaStore;
+
 import com.example.stocksapp.data.model.FeedResponse;
 import com.example.stocksapp.data.model.LoginRequest;
 import com.example.stocksapp.data.model.LoginResponse;
@@ -7,6 +9,7 @@ import com.example.stocksapp.data.model.SignupRequest;
 import com.example.stocksapp.data.model.SignupResponse;
 import com.example.stocksapp.data.model.ForgotPasswordRequest;
 import com.example.stocksapp.data.model.ResetPasswordRequest;
+import com.example.stocksapp.ui.main.AudioNewsActivity;
 
 import okhttp3.ResponseBody;
 
@@ -30,6 +33,10 @@ public interface ApiService {
 
     @POST("/api/user/reset-password")
     Call<ResponseBody> resetPassword(@Body ResetPasswordRequest request);
+    @POST("api/tts/shortform")
+    Call<ResponseBody> getShortformTts(@Body AudioNewsActivity body);
+
+
 
 
 

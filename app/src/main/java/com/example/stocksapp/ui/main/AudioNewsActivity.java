@@ -33,11 +33,10 @@ public class AudioNewsActivity extends AppCompatActivity {
 
     private static final String TAG = "AudioNewsActivity";
 
-    // 🔹 실제 API 명세서와 동일하게 수정
+    // API 명세서: POST /api/tts/shortform
     private static final String TTS_URL =
-            "https://api.short-economy.store/api/tts/shortform/personalized";
+            "https://api.short-economy.store/api/tts/shortform";
 
-    // ---------- UI 요소 ----------
     private ImageButton backButton;
     private ImageButton prevButton;
     private ImageButton nextButton;
@@ -48,7 +47,6 @@ public class AudioNewsActivity extends AppCompatActivity {
     private TextView newsSummary;
     private ImageView newsImage;
 
-    // ---------- 오디오 / TTS ----------
     private MediaPlayer mediaPlayer;
     private Handler handler = new Handler();
     private File audioFile;
@@ -57,19 +55,11 @@ public class AudioNewsActivity extends AppCompatActivity {
 
     private OkHttpClient httpClient = new OkHttpClient();
 
-    // (예시) 로그인 시 저장해둔 userId를 불러온다고 가정
-    private int getUserId() {
-        // TODO: 실제론 SharedPreferences 등에서 가져와야 함
-        // 예: return getSharedPreferences("auth", MODE_PRIVATE).getInt("user_id", 0);
-        return 1; // 일단 하드코딩 (테스트용)
-    }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_audio_news);
 
-        // UI 바인딩
         backButton = findViewById(R.id.backButton);
         prevButton = findViewById(R.id.prevButton);
         nextButton = findViewById(R.id.nextButton);
@@ -80,10 +70,8 @@ public class AudioNewsActivity extends AppCompatActivity {
         newsSummary = findViewById(R.id.newsSummary);
         newsImage = findViewById(R.id.newsImage);
 
-        // 처음에는 재생 버튼 비활성화 (TTS 내려받기 전)
         playPauseButton.setEnabled(false);
 
-        // 인텐트로부터 뉴스 정보 전달받기 (없으면 XML 기본 텍스트 사용)
         String title = getIntent().getStringExtra("NEWS_TITLE");
         String summary = getIntent().getStringExtra("NEWS_SUMMARY");
         int imageResId = getIntent().getIntExtra("NEWS_IMAGE_RES_ID", 0);
@@ -100,19 +88,15 @@ public class AudioNewsActivity extends AppCompatActivity {
 
         setupListeners();
 
-        // 🔹 API 명세서상 text를 보낼 필요가 없으므로, 여기서는 user_id 기준으로만 요청
-        int userId = getUserId();
+        // 요약 텍스트를 그대로 text 필드로 보내서 TTS 생성
+        String summaryText = newsSummary.getText().toString();
         int maxChars = 180;
-
-        // 액티비티 진입 시 TTS 요청
-        requestTtsFromServer(userId, maxChars);
+        requestTtsFromServer(summaryText, maxChars);
     }
 
     private void setupListeners() {
-        // 뒤로가기
         backButton.setOnClickListener(v -> finish());
 
-        // 이전/다음 뉴스 (지금은 자리만 만들어 둠)
         prevButton.setOnClickListener(v ->
                 Toast.makeText(this, "이전 뉴스 이동 기능은 아직 미구현입니다.", Toast.LENGTH_SHORT).show()
         );
@@ -121,7 +105,6 @@ public class AudioNewsActivity extends AppCompatActivity {
                 Toast.makeText(this, "다음 뉴스 이동 기능은 아직 미구현입니다.", Toast.LENGTH_SHORT).show()
         );
 
-        // 재생/일시정지
         playPauseButton.setOnClickListener(v -> {
             if (!isAudioReady) {
                 Toast.makeText(this, "음성을 준비 중입니다. 잠시만 기다려 주세요.", Toast.LENGTH_SHORT).show();
@@ -135,7 +118,6 @@ public class AudioNewsActivity extends AppCompatActivity {
             }
         });
 
-        // 시크바 조작
         playbackSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -157,8 +139,6 @@ public class AudioNewsActivity extends AppCompatActivity {
             }
         });
     }
-
-    // ---------- 재생/일시정지 ----------
 
     private void playPlayback() {
         if (mediaPlayer != null) {
@@ -186,9 +166,8 @@ public class AudioNewsActivity extends AppCompatActivity {
         }
     };
 
-    // ---------- 백엔드 TTS 요청 (API 명세서에 맞게 수정된 부분) ----------
-
-    private void requestTtsFromServer(int userId, int maxChars) {
+    // text + max_chars 로 /api/tts/shortform 호출
+    private void requestTtsFromServer(String text, int maxChars) {
         if (isLoading) return;
         isLoading = true;
         playPauseButton.setEnabled(false);
@@ -196,8 +175,8 @@ public class AudioNewsActivity extends AppCompatActivity {
 
         try {
             JSONObject json = new JSONObject();
-            json.put("user_id", userId);     // 🔹 명세서에 맞게 user_id 사용
-            json.put("max_chars", maxChars); // 🔹 max_chars 그대로 사용
+            json.put("text", text);
+            json.put("max_chars", maxChars);
 
             MediaType JSON = MediaType.parse("application/json; charset=utf-8");
             RequestBody body = RequestBody.create(json.toString(), JSON);
@@ -234,7 +213,7 @@ public class AudioNewsActivity extends AppCompatActivity {
 
                     try {
                         InputStream is = response.body().byteStream();
-                        audioFile = new File(getCacheDir(), "shortform_news.mp3"); // 🔹 파일명도 맞춰줌
+                        audioFile = new File(getCacheDir(), "shortform_news.mp3");
 
                         FileOutputStream fos = new FileOutputStream(audioFile);
                         byte[] buffer = new byte[8 * 1024];
@@ -265,8 +244,6 @@ public class AudioNewsActivity extends AppCompatActivity {
                     Toast.LENGTH_LONG).show();
         }
     }
-
-    // ---------- 다운로드된 파일로 MediaPlayer 초기화 ----------
 
     private void initMediaPlayerWithFile(File file) {
         try {
