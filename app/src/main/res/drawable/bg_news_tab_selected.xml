@@ -1,0 +1,5 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 선택된 탭은 보라/남색 계열로 꽉 채워진 알약 -->
+    <corners android:radius="18dp" />
+    <solid android:color="@color/purple_500" />
+</shape>

@@ -15,6 +15,7 @@ import com.example.stocksapp.data.model.Q2AnswerResponse;
 import com.example.stocksapp.data.model.Q2AnswerRequest;
 import com.example.stocksapp.data.model.Q3AnswerResponse;
 import com.example.stocksapp.data.model.Q3AnswerRequest;
+import com.example.stocksapp.network.KeywordResponse;
 
 
 import retrofit2.Call;
@@ -70,6 +71,9 @@ public interface ApiService {
             @Query("user_id") int userId,
             @Body Q3AnswerRequest body
     );
+
+    @GET("/api/keywords/today_keywords")
+    Call<KeywordResponse> getTodayKeywords(@Query("user_id") int userId);
 
 
 }
