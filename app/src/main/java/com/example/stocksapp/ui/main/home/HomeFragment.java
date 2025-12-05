@@ -23,7 +23,10 @@ import com.example.stocksapp.data.model.FeedResponse;
 import com.example.stocksapp.data.model.NewsItem;
 import com.example.stocksapp.data.model.StockTip;
 import com.example.stocksapp.data.model.TopicCard;
+import com.example.stocksapp.data.model.PersonalizedNewsResponse;
 import com.example.stocksapp.data.repo.FakeFeedRepository;
+import com.example.stocksapp.network.ApiService;
+import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.main.adapter.NewsAdapter;
 import com.example.stocksapp.ui.main.adapter.StockTipAdapter;
 import com.example.stocksapp.ui.main.adapter.TopicCardAdapter;
@@ -32,6 +35,10 @@ import com.google.android.material.button.MaterialButtonToggleGroup;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class HomeFragment extends Fragment {
 
@@ -56,6 +63,7 @@ public class HomeFragment extends Fragment {
     private TopicCardAdapter topicCardAdapter;
     private NewsAdapter mainNewsAdapter;
     private NewsAdapter keywordNewsAdapter;
+    private ApiService apiService;
 
     @Nullable
     @Override
@@ -79,6 +87,7 @@ public class HomeFragment extends Fragment {
         tvKeywordList = view.findViewById(R.id.tvKeywordList);
 
         progressBar = view.findViewById(R.id.progressBar);
+        apiService = RetrofitClient.getApiService();
 
         // 리스트, 탭 설정
         setupRecyclerViews();
@@ -87,6 +96,8 @@ public class HomeFragment extends Fragment {
         // 데이터 로딩
         loadFeed();
         updateKeywordList();
+        loadNewsFromServer();   // 실제 뉴스 API
+        loadPersonalizedNewsFromServer();   // 선호 키워드 기반 맞춤 뉴스
 
         return view;
     }
@@ -177,11 +188,74 @@ public class HomeFragment extends Fragment {
                 .start();
     }
 
-    // 피드(뉴스/종목/토픽) 로딩
-    private void loadFeed() {
+    // 메인 뉴스
+    private void loadNewsFromServer() {
         progressBar.setVisibility(View.VISIBLE);
 
-        // 현재는 FakeFeedRepository 사용. 나중에 실제 API 연동 시 여기만 교체하면 됨.
+        apiService.getTodayNews().enqueue(new Callback<List<NewsItem>>() {
+            @Override
+            public void onResponse(Call<List<NewsItem>> call, Response<List<NewsItem>> response) {
+                if (!isAdded()) return;
+
+                if (response.isSuccessful() && response.body() != null) {
+                    List<NewsItem> newsList = response.body();
+                    if (newsList == null) newsList = new ArrayList<>();
+
+                    // 메인 뉴스 / 키워드 뉴스 둘 다 같은 리스트로 채워두고
+                    // 나중에 개인화 API 붙이면 keywordNewsAdapter만 교체
+                    mainNewsAdapter.setItems(newsList);
+                    keywordNewsAdapter.setItems(newsList);
+                } else {
+                    // ❗ 서버 응답 실패 시 FakeFeed로 fallback
+                    loadFeed();
+                }
+
+                progressBar.setVisibility(View.GONE);
+            }
+
+            @Override
+            public void onFailure(Call<List<NewsItem>> call, Throwable t) {
+                if (!isAdded()) return;
+
+                // ❗ 네트워크 실패 시에도 FakeFeed로 fallback
+                loadFeed();
+                progressBar.setVisibility(View.GONE);
+            }
+        });
+    }
+
+    // 선호 키워드 기반 맞춤 뉴스
+    private void loadPersonalizedNewsFromServer() {
+        // progressBar는 메인 뉴스 기준으로만 돌리고 싶다면 여기서는 안 건드려도 됨
+        apiService.getPersonalizedNews(3, 20)    // ★ days=3, limit=20
+                .enqueue(new Callback<PersonalizedNewsResponse>() {
+                    @Override
+                    public void onResponse(Call<PersonalizedNewsResponse> call,
+                                           Response<PersonalizedNewsResponse> response) {
+                        if (!isAdded()) return;
+
+                        if (response.isSuccessful() && response.body() != null) {
+                            List<NewsItem> articles = response.body().getArticles();
+                            if (articles == null) articles = new ArrayList<>();
+
+                            // 🟡 선호 키워드 뉴스 어댑터에만 세팅
+                            keywordNewsAdapter.setItems(articles);
+                        } else {
+                            // 실패 시: 이미 todayNews나 FakeFeed로 채워져 있을 수 있으므로 추가 처리 X
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<PersonalizedNewsResponse> call, Throwable t) {
+                        if (!isAdded()) return;
+                        // 실패해도 기존 keywordNews 리스트(FakeFeed or todayNews) 유지
+                    }
+                });
+    }
+
+    // 피드(뉴스/종목/토픽) 로딩
+    private void loadFeed() {
+        // progressBar는 서버 호출 기준으로 관리하고 싶으면 여기서는 안 건드려도 됨
         FeedResponse feed = FakeFeedRepository.getFeed();
 
         if (feed != null) {
@@ -193,15 +267,18 @@ public class HomeFragment extends Fragment {
             if (stockTips == null) stockTips = new ArrayList<>();
             if (topicCards == null) topicCards = new ArrayList<>();
 
-            // 메인 뉴스 / 키워드 뉴스 둘 다 일단 같은 리스트 사용
-            mainNewsAdapter.setItems(newsList);
-            keywordNewsAdapter.setItems(newsList);
-
+            // 🟢 토픽/종목은 항상 FakeFeed 기준으로 세팅
             stockTipAdapter.setItems(stockTips);
             topicCardAdapter.setItems(topicCards);
-        }
 
-        progressBar.setVisibility(View.GONE);
+            // 🟡 뉴스는 "어댑터가 아직 비어 있는 경우"에만 채움 (fallback 역할)
+            if (mainNewsAdapter.getItemCount() == 0) {
+                mainNewsAdapter.setItems(newsList);
+            }
+            if (keywordNewsAdapter.getItemCount() == 0) {
+                keywordNewsAdapter.setItems(newsList);
+            }
+        }
     }
 
     // 선호 키워드 텍스트 업데이트 (SharedPreferences 에서 가져오기)

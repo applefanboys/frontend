@@ -3,6 +3,8 @@ package com.example.stocksapp.network;
 import com.example.stocksapp.data.model.FeedResponse;
 import com.example.stocksapp.data.model.LoginRequest;
 import com.example.stocksapp.data.model.LoginResponse;
+import com.example.stocksapp.data.model.NewsItem;
+import com.example.stocksapp.data.model.PersonalizedNewsResponse;
 import com.example.stocksapp.data.model.SignupRequest;
 import com.example.stocksapp.data.model.SignupResponse;
 import com.example.stocksapp.data.model.ForgotPasswordRequest;
@@ -19,6 +21,7 @@ import com.example.stocksapp.network.KeywordResponse;
 import com.example.stocksapp.data.model.FortuneTodayResponse;
 
 
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -84,4 +87,12 @@ public interface ApiService {
             @Query("sign") String sign,             // 예: "물병자리"
             @Query("interests") String interests);    // 예: "주식, 경제, IT"
 
+    @GET("/api/news/today")
+    Call<List<NewsItem>> getTodayNews();
+
+    @GET("api/news/personalzied")
+    Call<PersonalizedNewsResponse> getPersonalizedNews(
+            @Query("days") int days,
+            @Query("limit") int limit
+    );
 }
