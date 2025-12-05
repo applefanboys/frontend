@@ -16,6 +16,8 @@ import com.example.stocksapp.data.model.Q2AnswerRequest;
 import com.example.stocksapp.data.model.Q3AnswerResponse;
 import com.example.stocksapp.data.model.Q3AnswerRequest;
 import com.example.stocksapp.network.KeywordResponse;
+import com.example.stocksapp.data.model.FortuneTodayResponse;
+
 
 
 import retrofit2.Call;
@@ -75,5 +77,11 @@ public interface ApiService {
     @GET("/api/keywords/today_keywords")
     Call<KeywordResponse> getTodayKeywords(@Query("user_id") int userId);
 
+    @GET("/api/fortune/today")
+    Call<FortuneTodayResponse> getTodayFortune(
+            @Query("name") String name,
+            @Query("birthdate") String birthdate,   // "1999-01-01" 이런 형식
+            @Query("sign") String sign,             // 예: "물병자리"
+            @Query("interests") String interests);    // 예: "주식, 경제, IT"
 
 }

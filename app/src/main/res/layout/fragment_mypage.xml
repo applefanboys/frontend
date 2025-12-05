@@ -82,13 +82,21 @@
                 android:layout_marginBottom="8dp" />
 
             <TextView
-                android:id="@+id/tvFortune"
+                android:id="@+id/tvFortuneOverall"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="오늘의 운세가 여기에 표시됩니다."
                 android:textSize="14sp"
                 android:textColor="@color/gray_800" />
         </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLoadFortune"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="오늘 운세 새로고침"
+            style="@style/Widget.MaterialComponents.Button.TextButton" />
 
         <LinearLayout
             android:id="@+id/cardSettings"
@@ -146,6 +154,7 @@
                 android:textSize="14sp"
                 android:textColor="@color/gray_800"
                 android:paddingVertical="4dp" />
+
 
         </LinearLayout>
 
