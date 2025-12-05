@@ -4,6 +4,7 @@ import com.example.stocksapp.data.model.FeedResponse;
 import com.example.stocksapp.data.model.LoginRequest;
 import com.example.stocksapp.data.model.LoginResponse;
 import com.example.stocksapp.data.model.NewsItem;
+import com.example.stocksapp.data.model.OnboardingStatusResponse;
 import com.example.stocksapp.data.model.SignupRequest;
 import com.example.stocksapp.data.model.SignupResponse;
 import com.example.stocksapp.data.model.ForgotPasswordRequest;
@@ -19,6 +20,7 @@ import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
+import retrofit2.http.Query;
 
 public interface ApiService {
     @POST("feed")
@@ -37,5 +39,10 @@ public interface ApiService {
 
     @GET("/api/news/today")
     Call<List<NewsItem>> getTodayNews();
+
+    @GET("/api/onboarding/status")
+    Call<OnboardingStatusResponse> getOnboardingStatus(
+            @Query("user_id") int userId
+    );
 
 }
