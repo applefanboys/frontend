@@ -22,9 +22,9 @@ import com.example.stocksapp.R;
 import com.example.stocksapp.data.model.FeedResponse;
 import com.example.stocksapp.data.model.NewsItem;
 import com.example.stocksapp.data.model.StockTip;
+import com.example.stocksapp.data.model.TodayNewsResponse;
 import com.example.stocksapp.data.model.TopicCard;
 import com.example.stocksapp.data.model.PersonalizedNewsResponse;
-import com.example.stocksapp.data.repo.FakeFeedRepository;
 import com.example.stocksapp.network.ApiService;
 import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.main.adapter.NewsAdapter;
@@ -94,7 +94,7 @@ public class HomeFragment extends Fragment {
         setupNewsTabToggle();
 
         // 데이터 로딩
-        loadFeed();
+        // loadFeed();
         updateKeywordList();
         loadNewsFromServer();   // 실제 뉴스 API
         loadPersonalizedNewsFromServer();   // 선호 키워드 기반 맞춤 뉴스
@@ -192,94 +192,162 @@ public class HomeFragment extends Fragment {
     private void loadNewsFromServer() {
         progressBar.setVisibility(View.VISIBLE);
 
-        apiService.getTodayNews().enqueue(new Callback<List<NewsItem>>() {
+        apiService.getTodayNews().enqueue(new Callback<TodayNewsResponse>() {
             @Override
-            public void onResponse(Call<List<NewsItem>> call, Response<List<NewsItem>> response) {
+            public void onResponse(Call<TodayNewsResponse> call, Response<TodayNewsResponse> response) {
                 if (!isAdded()) return;
 
+                progressBar.setVisibility(View.GONE);
+
                 if (response.isSuccessful() && response.body() != null) {
-                    List<NewsItem> newsList = response.body();
+
+                    List<NewsItem> newsList = response.body().getData();  // 🔥 핵심
+
                     if (newsList == null) newsList = new ArrayList<>();
 
-                    // 메인 뉴스 / 키워드 뉴스 둘 다 같은 리스트로 채워두고
-                    // 나중에 개인화 API 붙이면 keywordNewsAdapter만 교체
                     mainNewsAdapter.setItems(newsList);
-                    keywordNewsAdapter.setItems(newsList);
                 } else {
-                    // ❗ 서버 응답 실패 시 FakeFeed로 fallback
-                    loadFeed();
+                    android.util.Log.e("HOME_MAIN_NEWS",
+                            "response 실패 code=" + response.code());
                 }
 
                 progressBar.setVisibility(View.GONE);
             }
 
             @Override
-            public void onFailure(Call<List<NewsItem>> call, Throwable t) {
+            public void onFailure(Call<TodayNewsResponse> call, Throwable t) {
                 if (!isAdded()) return;
-
-                // ❗ 네트워크 실패 시에도 FakeFeed로 fallback
-                loadFeed();
+                android.util.Log.e("HOME_MAIN_NEWS", "onFailure: " + t.getMessage());
                 progressBar.setVisibility(View.GONE);
             }
         });
     }
 
+//    // 선호 키워드 기반 맞춤 뉴스 호출 여부 체크
+//    private void loadPersonalizedNewsIfPossible() {
+//        if (!isAdded()) return;
+//
+//        SharedPreferences prefs =
+//                requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+//        String raw = prefs.getString("include_keywords", "");
+//        int userId = prefs.getInt("user_id", -1);
+//
+//        // 키워드 없으면 굳이 API 안 부름
+//        if (userId <= 0 || raw == null || raw.trim().isEmpty()) {
+//            return;
+//        }
+//
+//        loadPersonalizedNewsFromServer();
+//    }
+
     // 선호 키워드 기반 맞춤 뉴스
+    // 선호 키워드 뉴스
     private void loadPersonalizedNewsFromServer() {
-        // progressBar는 메인 뉴스 기준으로만 돌리고 싶다면 여기서는 안 건드려도 됨
-        apiService.getPersonalizedNews(3, 20)    // ★ days=3, limit=20
+        // 로그 추가
+        android.util.Log.d("HOME_PERSONAL_NEWS", "▶ 함수 진입");
+
+        if (!isAdded()) return;
+
+        // 1) SharedPreferences에서 user_id, 키워드 가져오기
+        SharedPreferences prefs =
+                requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+
+        int userId = prefs.getInt("user_id", -1);          // 로그인할 때 저장해 둔 user_id
+        String rawKeywords = prefs.getString("include_keywords", "");
+
+        // 로그 추가
+        android.util.Log.d("HOME_PERSONAL_NEWS",
+                "userId=" + userId + ", rawKeywords=" + rawKeywords);
+
+        // 2) userId 없거나, 키워드 없으면 호출 안 함
+//        if (userId <= 0 || rawKeywords == null || rawKeywords.trim().isEmpty()) {
+//            return;
+//        }
+        if (userId <= 0) {
+            return;
+        }
+        apiService.getPersonalizedNews(userId,3, 20)
                 .enqueue(new Callback<PersonalizedNewsResponse>() {
                     @Override
                     public void onResponse(Call<PersonalizedNewsResponse> call,
                                            Response<PersonalizedNewsResponse> response) {
                         if (!isAdded()) return;
 
+                        android.util.Log.d("HOME_PERSONAL_NEWS",
+                                "onResponse: code=" + response.code());
+
                         if (response.isSuccessful() && response.body() != null) {
                             List<NewsItem> articles = response.body().getArticles();
                             if (articles == null) articles = new ArrayList<>();
 
-                            // 🟡 선호 키워드 뉴스 어댑터에만 세팅
+                            android.util.Log.d("HOME_PERSONAL_NEWS",
+                                    "articles.size=" + articles.size());
+
+                            if (!articles.isEmpty()) {
+                                android.util.Log.d("HOME_PERSONAL_NEWS",
+                                        "first title = " + articles.get(0).getTitle());
+                            }
+
                             keywordNewsAdapter.setItems(articles);
                         } else {
-                            // 실패 시: 이미 todayNews나 FakeFeed로 채워져 있을 수 있으므로 추가 처리 X
+                            String err = "";
+                            try {
+                                if (response.errorBody() != null) {
+                                    err = response.errorBody().string();
+                                }
+                            } catch (Exception e) {
+                                err = "errorBody 읽기 실패: " + e.getMessage();
+                            }
+
+                            android.util.Log.e("HOME_PERSONAL_NEWS",
+                                    "response 실패. code=" + response.code() + ", error=" + err);
                         }
                     }
 
                     @Override
                     public void onFailure(Call<PersonalizedNewsResponse> call, Throwable t) {
                         if (!isAdded()) return;
-                        // 실패해도 기존 keywordNews 리스트(FakeFeed or todayNews) 유지
+                        // 실패 시 기존 리스트 유지
                     }
                 });
     }
 
     // 피드(뉴스/종목/토픽) 로딩
-    private void loadFeed() {
-        // progressBar는 서버 호출 기준으로 관리하고 싶으면 여기서는 안 건드려도 됨
-        FeedResponse feed = FakeFeedRepository.getFeed();
+//    private void loadFeed() {
+//        // progressBar는 서버 호출 기준으로 관리하고 싶으면 여기서는 안 건드려도 됨
+//        FeedResponse feed = FakeFeedRepository.getFeed();
+//
+//        if (feed != null) {
+//            List<NewsItem> newsList = feed.getNews();
+//            List<StockTip> stockTips = feed.getStockTips();
+//            List<TopicCard> topicCards = feed.getTopics();
+//
+//            if (newsList == null) newsList = new ArrayList<>();
+//            if (stockTips == null) stockTips = new ArrayList<>();
+//            if (topicCards == null) topicCards = new ArrayList<>();
+//
+//            // 🟢 토픽/종목은 항상 FakeFeed 기준으로 세팅
+//            stockTipAdapter.setItems(stockTips);
+//            topicCardAdapter.setItems(topicCards);
+//
+//            // 🟡 뉴스는 "어댑터가 아직 비어 있는 경우"에만 채움 (fallback 역할)
+//            if (mainNewsAdapter.getItemCount() == 0) {
+//                mainNewsAdapter.setItems(newsList);
+//            }
+//            if (keywordNewsAdapter.getItemCount() == 0) {
+//                keywordNewsAdapter.setItems(newsList);
+//            }
+//        }
+//    }
 
-        if (feed != null) {
-            List<NewsItem> newsList = feed.getNews();
-            List<StockTip> stockTips = feed.getStockTips();
-            List<TopicCard> topicCards = feed.getTopics();
-
-            if (newsList == null) newsList = new ArrayList<>();
-            if (stockTips == null) stockTips = new ArrayList<>();
-            if (topicCards == null) topicCards = new ArrayList<>();
-
-            // 🟢 토픽/종목은 항상 FakeFeed 기준으로 세팅
-            stockTipAdapter.setItems(stockTips);
-            topicCardAdapter.setItems(topicCards);
-
-            // 🟡 뉴스는 "어댑터가 아직 비어 있는 경우"에만 채움 (fallback 역할)
-            if (mainNewsAdapter.getItemCount() == 0) {
-                mainNewsAdapter.setItems(newsList);
-            }
-            if (keywordNewsAdapter.getItemCount() == 0) {
-                keywordNewsAdapter.setItems(newsList);
-            }
-        }
-    }
+//    private void useFeedNewsAsMain() {
+//        FeedResponse feed = FakeFeedRepository.getFeed();
+//        if (feed == null) return;
+//
+//        List<NewsItem> newsList = feed.getNews();
+//        if (newsList == null) newsList = new ArrayList<>();
+//        mainNewsAdapter.setItems(newsList);
+//    }
 
     // 선호 키워드 텍스트 업데이트 (SharedPreferences 에서 가져오기)
     private void updateKeywordList() {

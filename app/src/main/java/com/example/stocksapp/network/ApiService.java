@@ -17,6 +17,7 @@ import com.example.stocksapp.data.model.Q2AnswerResponse;
 import com.example.stocksapp.data.model.Q2AnswerRequest;
 import com.example.stocksapp.data.model.Q3AnswerResponse;
 import com.example.stocksapp.data.model.Q3AnswerRequest;
+import com.example.stocksapp.data.model.TodayNewsResponse;
 import com.example.stocksapp.network.KeywordResponse;
 import com.example.stocksapp.data.model.FortuneTodayResponse;
 
@@ -27,6 +28,7 @@ import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Body;
 import retrofit2.http.Query;
+import retrofit2.http.Header;
 
 import okhttp3.ResponseBody;
 
@@ -88,11 +90,12 @@ public interface ApiService {
             @Query("interests") String interests);    // 예: "주식, 경제, IT"
 
     @GET("/api/news/today")
-    Call<List<NewsItem>> getTodayNews();
+    Call<TodayNewsResponse> getTodayNews();
 
-    @GET("api/news/personalzied")
+    @GET("/api/news/personalized")
     Call<PersonalizedNewsResponse> getPersonalizedNews(
+            @Header("X-User-Id") int userId,
             @Query("days") int days,
-            @Query("limit") int limit
+            @Query("total") int total
     );
 }

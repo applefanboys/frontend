@@ -11,6 +11,7 @@ public class PersonalizedNewsResponse {
     private int days;
     private int total;
 
+    @SerializedName("articles")
     private List<NewsItem> articles;
 
     public int getUserId() {

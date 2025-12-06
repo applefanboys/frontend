@@ -80,6 +80,12 @@ public class LoginActivity extends AppCompatActivity {
 
                         int userId = user.getId();  // getId() 이름은 실제 모델에 맞게 수정
 
+                        // user_id를 SharedPreferences에 저장
+                        getSharedPreferences("user_prefs", MODE_PRIVATE)
+                                .edit()
+                                .putInt("user_id", userId)
+                                .apply();
+
                         // 🔥 토큰 없이, user_id로 /api/onboarding/status 호출
                         fetchOnboardingStatusAndNavigate(userId);
                     } else {

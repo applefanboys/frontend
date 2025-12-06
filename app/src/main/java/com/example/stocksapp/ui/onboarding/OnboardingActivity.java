@@ -290,6 +290,17 @@ public class OnboardingActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Q2AnswerResponse> call, Response<Q2AnswerResponse> response) {
                 if (response.isSuccessful()) {
+
+                    // 선택한 키워드를 SharedPreferences에 저장
+                    // "반도체,2차전지,달러" 이런 식으로 저장해두고,
+                    // HomeFragment에서 pretty하게 "반도체 · 2차전지 · 달러"로 바꿔서 보여줌
+                    String raw = android.text.TextUtils.join(",", selectedKeywords);
+
+                    getSharedPreferences("user_prefs", MODE_PRIVATE)
+                            .edit()
+                            .putString("include_keywords", raw)   // 키 이름 HomeFragment와 동일
+                            .apply();
+
                     currentStep = 3;
                     updateUI();
                 } else {
@@ -350,7 +361,9 @@ public class OnboardingActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Q3AnswerResponse> call, Response<Q3AnswerResponse> response) {
                 if (response.isSuccessful()) {
-                    startActivity(new Intent(OnboardingActivity.this, MainActivity.class));
+                    Intent intent = new Intent(OnboardingActivity.this, MainActivity.class);
+                    intent.putExtra(LoginActivity.EXTRA_USER_ID, userId);
+                    startActivity(intent);
                     finish();
                 } else {
                     Toast.makeText(OnboardingActivity.this, "Q3 저장 실패", Toast.LENGTH_SHORT).show();
