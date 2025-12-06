@@ -16,7 +16,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.example.stocksapp.R;
-import com.example.stocksapp.data.model.FortuneTodayResponse;
+import com.example.stocksapp.data.model.FortuneDetail;
+import com.example.stocksapp.data.model.FortuneResponse;
 import com.example.stocksapp.network.ApiService;
 import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.login.LoginActivity;
@@ -31,57 +32,39 @@ import retrofit2.Response;
 
 public class MyPageFragment extends Fragment {
 
-    // 설정 메뉴
-    private TextView tvMenuKeywordSetting;
-    private TextView tvMenuResetPassword;
-    private TextView tvMenuLogout;
-
-    // 오늘의 운세 표시 텍스트뷰 (설명 문구가 있던 그 TextView)
-    private TextView tvFortuneOverall;
-
-    // (운세 새로고침 버튼이 fragment_mypage.xml에 있으면 연결, 없으면 null)
+    // (필드 선언... 생략)
+    private TextView tvMenuKeywordSetting, tvMenuResetPassword, tvMenuLogout, tvFortuneOverall;
     private MaterialButton btnLoadFortune;
-
     private ApiService apiService;
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+        // (onCreateView 내용... 이전과 동일하므로 생략)
         View view = inflater.inflate(R.layout.fragment_mypage, container, false);
 
-        // 설정 메뉴 findViewById
         tvMenuKeywordSetting = view.findViewById(R.id.tvMenuKeywordSetting);
         tvMenuResetPassword = view.findViewById(R.id.tvMenuResetPassword);
         tvMenuLogout = view.findViewById(R.id.tvMenuLogout);
-
-        // 오늘의 운세 TextView (레이아웃에서 id를 꼭 tvFortuneOverall로 달아야 함)
         tvFortuneOverall = view.findViewById(R.id.tvFortuneOverall);
-
-        // 운세 새로고침 버튼이 있으면 연결 (없으면 무시)
         btnLoadFortune = view.findViewById(R.id.btnLoadFortune);
 
-        // Retrofit ApiService 생성
         apiService = RetrofitClient.getApiService();
 
-        // 비밀번호 재설정
         tvMenuResetPassword.setOnClickListener(v -> {
             if (getActivity() == null) return;
             Intent intent = new Intent(getActivity(), ResetRequestActivity.class);
             startActivity(intent);
         });
 
-        // 선호 키워드 다시 설정
         tvMenuKeywordSetting.setOnClickListener(v -> showResetKeywordsDialog());
-
-        // 로그아웃
         tvMenuLogout.setOnClickListener(v -> doLogout());
 
-        // 마이페이지 들어오면 오늘의 운세 자동으로 한 번 가져오기
         loadTodayFortune();
 
-        // 버튼이 있으면 버튼으로도 새로고침 가능
         if (btnLoadFortune != null) {
             btnLoadFortune.setOnClickListener(v -> loadTodayFortune());
         }
@@ -89,46 +72,50 @@ public class MyPageFragment extends Fragment {
         return view;
     }
 
-    // =========================
-    //  오늘의 운세 API 호출
-    // =========================
+    // (loadTodayFortune, showResetKeywordsDialog 메서드... 생략)
     private void loadTodayFortune() {
         if (!isAdded()) return;
 
-        // 유저 정보는 SharedPreferences에 저장되어 있다고 가정
         SharedPreferences prefs =
                 requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
 
         String name = prefs.getString("user_name", "사용자");
-        String birthdate = prefs.getString("user_birthdate", "1999-01-01"); // yyyy-MM-dd
+        String birthdate = prefs.getString("user_birthdate", "1999-01-01");
         String sign = prefs.getString("user_sign", "물병자리");
-        String interests = prefs.getString("user_interests", "주식, 경제");
 
-        apiService.getTodayFortune(name, birthdate, sign, interests)
-                .enqueue(new Callback<FortuneTodayResponse>() {
+        if (tvFortuneOverall != null) {
+            tvFortuneOverall.setText("오늘의 운세를 불러오는 중입니다...");
+        }
+
+        apiService.getTodayFortune(name, birthdate, sign)
+                .enqueue(new Callback<FortuneResponse>() {
                     @Override
-                    public void onResponse(@NonNull Call<FortuneTodayResponse> call,
-                                           @NonNull Response<FortuneTodayResponse> response) {
+                    public void onResponse(@NonNull Call<FortuneResponse> call,
+                                           @NonNull Response<FortuneResponse> response) {
                         if (!isAdded()) return;
-
                         if (response.isSuccessful() && response.body() != null) {
-                            FortuneTodayResponse.Fortune fortune = response.body().getFortune();
+                            FortuneResponse body = response.body();
+                            FortuneDetail fortune = body.getFortune();
+
                             if (fortune != null && tvFortuneOverall != null) {
-                                // 카드 안의 문구를 서버에서 받은 전체 운세로 교체
                                 tvFortuneOverall.setText(fortune.getOverall());
                             }
                         } else {
+                            if (tvFortuneOverall != null) {
+                                tvFortuneOverall.setText("오늘의 운세를 불러오지 못했습니다.");
+                            }
                             Toast.makeText(requireContext(),
-                                    "오늘의 운세를 불러오지 못했어요.",
+                                    "오늘의 운세 조회 실패 (" + response.code() + ")",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }
-
                     @Override
-                    public void onFailure(@NonNull Call<FortuneTodayResponse> call,
+                    public void onFailure(@NonNull Call<FortuneResponse> call,
                                           @NonNull Throwable t) {
                         if (!isAdded()) return;
-
+                        if (tvFortuneOverall != null) {
+                            tvFortuneOverall.setText("오늘의 운세를 불러오지 못했습니다.");
+                        }
                         Toast.makeText(requireContext(),
                                 "서버 오류: " + t.getMessage(),
                                 Toast.LENGTH_SHORT).show();
@@ -136,12 +123,8 @@ public class MyPageFragment extends Fragment {
                 });
     }
 
-    // =========================
-    //  선호 키워드 재설정
-    // =========================
     private void showResetKeywordsDialog() {
         if (!isAdded()) return;
-
         new AlertDialog.Builder(requireContext())
                 .setTitle("선호 키워드 초기화")
                 .setMessage("선호 키워드를 초기화하고\n다시 설정하시겠어요?")
@@ -150,29 +133,53 @@ public class MyPageFragment extends Fragment {
                 .show();
     }
 
+
+    // [수정됨] 키워드를 초기화하고 온보딩 화면으로 이동 (user_id 전달)
     private void resetKeywordsAndGoOnboarding() {
+        if (getContext() == null) return;
+
         SharedPreferences prefs =
                 requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
 
-        SharedPreferences.Editor editor = prefs.edit();
+        // SharedPreferences에서 현재 user_id를 가져옵니다.
+        int userId = prefs.getInt("user_id", -1); // 기본값 -1 (유효하지 않은 ID)
 
+        // --- [핵심 수정] ---
+        // 만약 이 시점에 user_id가 없다면, 비정상적인 상태로 간주하고 로그아웃 처리
+        if (userId == -1) {
+            Toast.makeText(getContext(), "사용자 정보가 유효하지 않아 로그아웃합니다.", Toast.LENGTH_LONG).show();
+            doLogout(); // 강제 로그아웃
+            return; // 더 이상 진행하지 않음
+        }
+
+        // 키워드 관련 정보만 삭제
+        SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean("has_keywords", false);
         editor.remove("include_keywords");
         editor.remove("exclude_keywords");
         editor.apply();
 
         Intent intent = new Intent(requireContext(), OnboardingActivity.class);
+
+        // Intent에 user_id와 마이페이지에서 왔다는 플래그를 함께 담아 전달합니다.
         intent.putExtra("from_mypage", true);
+        intent.putExtra("user_id", userId);
         startActivity(intent);
 
-        requireActivity().finish();
+        // 현재 액티비티(MainActivity)를 종료하여 뒤로가기 시 다시 돌아오지 않도록 합니다.
+        if (getActivity() != null) {
+            getActivity().finish();
+        }
     }
 
-    // =========================
-    //  로그아웃 처리
-    // =========================
+    // (doLogout, clearLoginState, moveToLoginAndClear 메서드... 생략)
     private void doLogout() {
-        // 서버 로그아웃 API가 있으면 여기서 호출
+        if (getContext() == null) {
+            clearLoginState();
+            moveToLoginAndClear();
+            return;
+        }
+
         ApiService api = RetrofitClient.getApiService();
         api.logout().enqueue(new Callback<ResponseBody>() {
             @Override
@@ -193,7 +200,6 @@ public class MyPageFragment extends Fragment {
 
     private void clearLoginState() {
         if (getContext() == null) return;
-
         SharedPreferences prefs =
                 requireContext().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
         prefs.edit().clear().apply();
@@ -201,11 +207,8 @@ public class MyPageFragment extends Fragment {
 
     private void moveToLoginAndClear() {
         if (getActivity() == null) return;
-
         Intent intent = new Intent(requireActivity(), LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-                | Intent.FLAG_ACTIVITY_NEW_TASK
-                | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         requireActivity().finish();
     }

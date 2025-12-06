@@ -1,11 +1,14 @@
 package com.example.stocksapp.ui.login;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
 
 import com.example.stocksapp.R;
 import com.example.stocksapp.data.model.LoginRequest;
@@ -30,9 +33,8 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvGoSignUp;
     private TextView tvGoResetPassword;
 
-    // OnboardingActivity에 넘길 때 쓸 키 값들 (필요하면 OnboardingActivity 쪽에도 동일하게 선언)
     public static final String EXTRA_USER_ID = "extra_user_id";
-    public static final String EXTRA_START_STEP = "extra_start_step"; // 1, 2, 3 중 하나
+    public static final String EXTRA_START_STEP = "extra_start_step";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         tvGoSignUp = findViewById(R.id.tvGoSignUp);
         tvGoResetPassword = findViewById(R.id.tvGoResetPassword);
 
-        // 🔥 로그인 버튼 → 서버로 로그인 요청
+        // 로그인 버튼 → 서버로 로그인 요청
         btnLogin.setOnClickListener(v -> {
             String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
             String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
@@ -60,37 +62,37 @@ public class LoginActivity extends AppCompatActivity {
 
             api.login(request).enqueue(new Callback<LoginResponse>() {
                 @Override
-                public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                public void onResponse(@NonNull Call<LoginResponse> call, @NonNull Response<LoginResponse> response) {
                     if (response.isSuccessful() && response.body() != null) {
                         LoginResponse body = response.body();
 
-                        // 서버에서 내려주는 메시지/유저 정보 확인
-                        String msg = body.getMessage();
-                        Toast.makeText(LoginActivity.this,
-                                msg != null ? msg : "로그인 성공!",
-                                Toast.LENGTH_SHORT).show();
-
-                        // 🔑 user_id 꺼내기 (LoginResponse.User 안에 있다고 가정)
                         LoginResponse.User user = body.getUser();
                         if (user == null) {
-                            // user 정보가 없으면 그냥 온보딩 처음부터
-                            goOnboardingFromStep(1, -1);
+                            Toast.makeText(LoginActivity.this, "사용자 정보를 받지 못했습니다.", Toast.LENGTH_SHORT).show();
                             return;
                         }
 
-                        int userId = user.getId();  // getId() 이름은 실제 모델에 맞게 수정
+                        // [핵심 수정] LoginResponse의 실제 필드에 맞게 SharedPreferences 저장
+                        // body.getToken() -> body.getMessage() (토큰이 message 필드에 담겨온다고 가정)
+                        // user.getName() -> user.getUsername()
+                        saveUserInfo(user, body.getMessage());
 
-                        // 🔥 토큰 없이, user_id로 /api/onboarding/status 호출
-                        fetchOnboardingStatusAndNavigate(userId);
+                        // [핵심 수정] user.getName() -> user.getUsername()
+                        Toast.makeText(LoginActivity.this,
+                                user.getUsername() + "님, 환영합니다!",
+                                Toast.LENGTH_SHORT).show();
+
+                        // user_id로 온보딩 상태 확인 후 화면 이동
+                        fetchOnboardingStatusAndNavigate(user.getId());
                     } else {
                         Toast.makeText(LoginActivity.this,
-                                "로그인 실패: " + response.code(),
+                                "로그인 실패: 이메일 또는 비밀번호를 확인해주세요.",
                                 Toast.LENGTH_SHORT).show();
                     }
                 }
 
                 @Override
-                public void onFailure(Call<LoginResponse> call, Throwable t) {
+                public void onFailure(@NonNull Call<LoginResponse> call, @NonNull Throwable t) {
                     Toast.makeText(LoginActivity.this,
                             "네트워크 오류: " + t.getMessage(),
                             Toast.LENGTH_SHORT).show();
@@ -114,6 +116,25 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     /**
+     * [핵심 수정] 실제 LoginResponse.User 구조에 맞게 메서드 수정
+     */
+    private void saveUserInfo(LoginResponse.User user, String token) {
+        SharedPreferences prefs = getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putInt("user_id", user.getId());
+        editor.putString("token", token); // 토큰이 message 필드에 담겨온다고 가정합니다.
+        editor.putString("user_name", user.getUsername()); // name 대신 username
+        editor.putString("user_email", user.getEmail());
+
+        // birthdate, sign 필드는 현재 LoginResponse.User 클래스에 없으므로 관련 코드는 삭제합니다.
+        // editor.putString("user_birthdate", user.getBirthdate());
+        // editor.putString("user_sign", user.getSign());
+
+        editor.apply();
+    }
+
+    /**
      * user_id로 /api/onboarding/status를 호출해서
      * 온보딩 어디까지 했는지 보고 다음 화면 결정
      */
@@ -122,31 +143,21 @@ public class LoginActivity extends AppCompatActivity {
 
         api.getOnboardingStatus(userId).enqueue(new Callback<OnboardingStatusResponse>() {
             @Override
-            public void onResponse(Call<OnboardingStatusResponse> call,
-                                   Response<OnboardingStatusResponse> response) {
+            public void onResponse(@NonNull Call<OnboardingStatusResponse> call,
+                                   @NonNull Response<OnboardingStatusResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     OnboardingStatusResponse status = response.body();
 
-                    boolean q1 = status.isQ1Completed();
-                    boolean q2 = status.isQ2Completed();
-                    boolean q3 = status.isQ3Completed();
-
-                    // 🔁 어디까지 했는지 보고 분기
-                    if (!q1) {
-                        // Q1을 아직 안 했으면 온보딩 1단계부터
+                    if (!status.isQ1Completed()) {
                         goOnboardingFromStep(1, userId);
-                    } else if (!q2) {
-                        // Q1은 했고 Q2는 안 했으면 2단계부터
+                    } else if (!status.isQ2Completed()) {
                         goOnboardingFromStep(2, userId);
-                    } else if (!q3) {
-                        // Q1, Q2는 했고 Q3는 안 했으면 3단계부터
+                    } else if (!status.isQ3Completed()) {
                         goOnboardingFromStep(3, userId);
                     } else {
-                        // 세 단계 다 끝났으면 메인 화면으로
-                        goMain(userId);
+                        goMain();
                     }
                 } else {
-                    // 상태 조회 실패하면 그냥 온보딩 처음부터
                     Toast.makeText(LoginActivity.this,
                             "온보딩 상태 조회 실패: " + response.code(),
                             Toast.LENGTH_SHORT).show();
@@ -155,11 +166,10 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<OnboardingStatusResponse> call, Throwable t) {
+            public void onFailure(@NonNull Call<OnboardingStatusResponse> call, @NonNull Throwable t) {
                 Toast.makeText(LoginActivity.this,
                         "온보딩 상태 조회 네트워크 오류: " + t.getMessage(),
                         Toast.LENGTH_SHORT).show();
-                // 실패 시에도 최소 기능은 되게 온보딩 1단계로
                 goOnboardingFromStep(1, userId);
             }
         });
@@ -174,9 +184,8 @@ public class LoginActivity extends AppCompatActivity {
         finish();
     }
 
-    private void goMain(int userId) {
+    private void goMain() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.putExtra(EXTRA_USER_ID, userId);
         startActivity(intent);
         overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
         finish();

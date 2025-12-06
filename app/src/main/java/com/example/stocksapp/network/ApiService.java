@@ -15,10 +15,8 @@ import com.example.stocksapp.data.model.Q2AnswerResponse;
 import com.example.stocksapp.data.model.Q2AnswerRequest;
 import com.example.stocksapp.data.model.Q3AnswerResponse;
 import com.example.stocksapp.data.model.Q3AnswerRequest;
-import com.example.stocksapp.network.KeywordResponse;
-import com.example.stocksapp.data.model.FortuneTodayResponse;
-
-
+import com.example.stocksapp.data.model.FortuneResponse;
+import com.example.stocksapp.data.model.AiStockResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -28,10 +26,6 @@ import retrofit2.http.Query;
 import okhttp3.ResponseBody;
 
 
-
-import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
 import retrofit2.http.POST;
 
 public interface ApiService {
@@ -78,10 +72,15 @@ public interface ApiService {
     Call<KeywordResponse> getTodayKeywords(@Query("user_id") int userId);
 
     @GET("/api/fortune/today")
-    Call<FortuneTodayResponse> getTodayFortune(
+    Call<FortuneResponse> getTodayFortune(
             @Query("name") String name,
-            @Query("birthdate") String birthdate,   // "1999-01-01" 이런 형식
-            @Query("sign") String sign,             // 예: "물병자리"
-            @Query("interests") String interests);    // 예: "주식, 경제, IT"
+            @Query("birthdate") String birthdate,
+            @Query("sign") String sign);
+
+    // AI 종목 추천 (개인 맞춤)
+    @GET("/api/stocks/recommend/personal")
+    Call<AiStockResponse> getPersonalStockRecommend(
+            @Query("user_id") int userId
+    );
 
 }
