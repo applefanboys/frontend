@@ -40,14 +40,20 @@ public class NewsReelsAdapter extends RecyclerView.Adapter<NewsReelsAdapter.News
     public void onBindViewHolder(@NonNull NewsReelViewHolder holder, int position) {
         NewsItem item = items.get(position);
 
-        // 기존 모델에 확실히 있는 메서드는 getTitle() 뿐이라서
-        // 일단 제목만 바인딩해 두고, 나머지는 추후 필요하면 직접 연결해도 됨.
-        holder.tvTitle.setText(item.getTitle());
+        // 🔹 위 작은 텍스트(p1 자리)는 페이지 번호처럼 표시
+        //    (원래 XML에 "p1" 박아놓았으면 이 한 줄로 p1, p2, p3 ... 자동 변경)
+        holder.tvTitle.setText("p" + (position + 1));
 
-        // 만약 NewsItem에 getSummary(), getImageResId() 같은 게 있다면
-        // 여기서 직접 연결해서 쓰면 된다.
-        // holder.tvSummary.setText(item.getSummary());
-        // holder.ivImage.setImageResource(item.getImageResId());
+        // 🔹 아래 큰 텍스트(삼성전자… 자리)에 뉴스 요약 세팅
+        String summary = item.getSummary();   // NewsItem에 summary 필드 있다고 가정
+        if (summary == null || summary.trim().isEmpty()) {
+            // 요약이 없으면 제목이라도 대신 보여주기
+            summary = item.getTitle();
+        }
+        holder.tvSummary.setText(summary);
+
+        // 이미지도 있으면 여기서 세팅
+        // 예: holder.ivImage.setImageResource(item.getImageResId());
     }
 
     @Override
@@ -57,8 +63,8 @@ public class NewsReelsAdapter extends RecyclerView.Adapter<NewsReelsAdapter.News
 
     static class NewsReelViewHolder extends RecyclerView.ViewHolder {
 
-        TextView tvTitle;
-        TextView tvSummary;
+        TextView tvTitle;    // p1, p2, p3 ... 자리
+        TextView tvSummary;  // 삼성전자 내용 자리
         ImageView ivImage;
 
         NewsReelViewHolder(@NonNull View itemView) {

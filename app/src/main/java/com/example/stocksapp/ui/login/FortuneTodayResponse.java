@@ -1,4 +1,4 @@
-package com.example.stocksapp.data.model;
+package com.example.stocksapp.ui.login;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

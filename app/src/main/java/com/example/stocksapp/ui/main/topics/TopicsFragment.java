@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -50,6 +51,13 @@ public class TopicsFragment extends Fragment {
     private static final String TTS_URL =
             "https://api.short-economy.store/api/tts/shortform";
 
+    // 사용자 맞춤형 숏폼 TTS
+    private static final String TTS_PERSONALIZED_URL =
+            "https://api.short-economy.store/api/tts/shortform/personalized";
+
+    // 로그인 연동 전 임시 user_id (TODO: 실제 로그인 연동 시 교체)
+    private static final int TEMP_USER_ID = 1;
+
     private ViewPager2 vpNewsReels;
     private NewsReelsAdapter adapter;
     private final List<NewsItem> newsList = new ArrayList<>();
@@ -59,8 +67,13 @@ public class TopicsFragment extends Fragment {
     private MediaPlayer mediaPlayer;
     private int currentPosition = 0;
 
+    private final Random random = new Random();
+
     // position -> 캐싱된 mp3 파일
     private final Map<Integer, File> ttsCache = new HashMap<>();
+
+    // position -> 이 카드에 할당된 TTS 모드 (true: 개인화, false: 일반)
+    private final Map<Integer, Boolean> ttsModeMap = new HashMap<>();
 
     @Nullable
     @Override
@@ -84,10 +97,20 @@ public class TopicsFragment extends Fragment {
 
         // 피드 데이터 로딩 (기존 FakeFeedRepository 사용)
         FeedResponse feed = FakeFeedRepository.getFeed();
-        if (feed != null && feed.getNews() != null) {
+        if (feed != null && feed.getNews() != null && !feed.getNews().isEmpty()) {
             newsList.clear();
-            newsList.addAll(feed.getNews());
+
+            List<NewsItem> base = feed.getNews();
+            int targetCount = 50;
+
+            for (int i = 0; i < targetCount; i++) {
+                NewsItem src = base.get(i % base.size());
+                newsList.add(src);
+            }
         }
+
+
+
 
         adapter = new NewsReelsAdapter(newsList);
         vpNewsReels.setAdapter(adapter);
@@ -120,71 +143,135 @@ public class TopicsFragment extends Fragment {
         // 이전 카드 음성 정리
         stopCurrentAudio();
 
+        // ===== 1) 현재 카드 텍스트 뽑기 =====
         NewsItem item = newsList.get(position);
+        String text = buildTtsTextFromItem(item);
 
-        // 일단 제목 기준으로 TTS (요약 필드 있으면 여기 변경)
-        String text = item.getTitle();
-        if (text == null) text = "";
-        text = text.trim();
+        // 이 카드에 대해 사용할 TTS 모드 결정 (true: 개인화, false: 일반)
+        boolean usePersonalized = getOrAssignTtsMode(position);
 
-        // TTS 속도 위해 길이 제한
-        if (text.length() > 150) {
-            text = text.substring(0, 150);
-        }
-
-        // 1) 현재 카드용: 캐시 있으면 바로 재생, 없으면 요청 + 자동재생
+        // 2) 현재 카드: 캐시 + 모드가 일치하면 바로 재생, 아니면 새로 요청
         File cached = ttsCache.get(position);
-        if (cached != null && cached.exists()) {
+        Boolean cachedMode = ttsModeMap.get(position);
+        if (cached != null && cached.exists()
+                && cachedMode != null && cachedMode == usePersonalized) {
             initMediaPlayerWithFile(cached, position);
         } else {
-            requestTtsFromServer(text, position, true);
+            requestTtsFromServer(text, position, true, usePersonalized);
         }
 
-        // 2) 위/아래 카드 프리페치 (최대한 빨리 재생되도록)
+        // ===== 3) 위/아래 카드 프리페치 =====
         int prev = position - 1;
         int next = position + 1;
 
         if (prev >= 0 && !ttsCache.containsKey(prev)) {
             NewsItem prevItem = newsList.get(prev);
-            String prevText = prevItem.getTitle();
-            if (prevText == null) prevText = "";
-            prevText = prevText.trim();
-            if (prevText.length() > 150) {
-                prevText = prevText.substring(0, 150);
-            }
-            requestTtsFromServer(prevText, prev, false);
+            String prevText = buildTtsTextFromItem(prevItem);
+            boolean prevPersonalized = getOrAssignTtsMode(prev);
+            requestTtsFromServer(prevText, prev, false, prevPersonalized);
         }
 
         if (next < newsList.size() && !ttsCache.containsKey(next)) {
             NewsItem nextItem = newsList.get(next);
-            String nextText = nextItem.getTitle();
-            if (nextText == null) nextText = "";
-            nextText = nextText.trim();
-            if (nextText.length() > 150) {
-                nextText = nextText.substring(0, 150);
-            }
-            requestTtsFromServer(nextText, next, false);
+            String nextText = buildTtsTextFromItem(nextItem);
+            boolean nextPersonalized = getOrAssignTtsMode(next);
+            requestTtsFromServer(nextText, next, false, nextPersonalized);
         }
     }
 
     /**
-     * /api/tts/shortform 호출
-     *
-     * @param autoPlay true  → 이 카드용 음성: 다운로드 후 바로 재생 시도
-     *                 false → 프리페치용: 파일만 캐시에 저장
+     * 한 뉴스 카드에서 TTS에 쓸 텍스트 뽑기
+     * - summary가 있으면 summary 우선
+     * - 없으면 title
+     * - 둘 다 없으면 기본 문구
      */
-    private void requestTtsFromServer(String text, int positionForThisRequest, boolean autoPlay) {
+    private String buildTtsTextFromItem(NewsItem item) {
+        if (item == null) return "오늘의 경제 뉴스입니다.";
+
+        String text = null;
+
+        // 요약 필드가 있으면 이걸 먼저 사용
         try {
+            text = item.getSummary();
+        } catch (Exception ignored) {}
+
+        if (text == null || text.trim().isEmpty()) {
+            try {
+                text = item.getTitle();
+            } catch (Exception ignored) {}
+        }
+
+        if (text == null || text.trim().isEmpty()) {
+            text = "오늘의 경제 뉴스입니다.";
+        }
+
+        return text;
+    }
+
+
+    /**
+     * 주어진 position에 대해 TTS 모드를 가져오거나(이미 있으면) 새로 50% 확률로 할당한다.
+     * true  → 사용자 맞춤형 경제 뉴스 (/tts/shortform/personalized)
+     * false → 일반 경제 뉴스 (/tts/shortform)
+     */
+    private boolean getOrAssignTtsMode(int position) {
+        Boolean mode = ttsModeMap.get(position);
+        if (mode != null) {
+            return mode;
+        }
+        boolean newMode = random.nextBoolean();
+        ttsModeMap.put(position, newMode);
+        return newMode;
+    }
+
+    /**
+     * TTS 호출
+     *
+     * @param autoPlay        true  → 이 카드용 음성: 다운로드 후 바로 재생 시도
+     *                        false → 프리페치용: 파일만 캐시에 저장
+     * @param usePersonalized true  → 사용자 맞춤형 경제 뉴스 (/tts/shortform/personalized)
+     *                        false → 일반 경제 뉴스 (/tts/shortform)
+     */
+    private void requestTtsFromServer(String text,
+                                      int positionForThisRequest,
+                                      boolean autoPlay,
+                                      boolean usePersonalized) {
+        try {
+            // 🔹 1) 공통 텍스트 전처리 (여기서 한 번에!)
+            if (text == null) text = "";
+            text = text.trim();
+            if (text.isEmpty()) {
+                text = "오늘의 경제 뉴스입니다.";
+            }
+            if (text.length() > 150) {
+                text = text.substring(0, 150);
+            }
+
             JSONObject json = new JSONObject();
-            json.put("text", text);
-            // TTS 생성 속도 위해 max_chars 살짝 줄임
+            String url;
+
+            // 둘 다 공통
             json.put("max_chars", 120);
+
+            if (usePersonalized) {
+                // ✅ 개인화도 text를 같이 보냄
+                json.put("user_id", TEMP_USER_ID);
+                json.put("text", text);
+                url = TTS_PERSONALIZED_URL;
+            } else {
+                json.put("text", text);
+                url = TTS_URL;
+            }
+
+            // 디버깅용 로그
+            Log.d(TAG, "TTS 요청 (" + (usePersonalized ? "personalized" : "normal")
+                    + ") pos=" + positionForThisRequest + " body=" + json.toString());
 
             MediaType JSON = MediaType.parse("application/json; charset=utf-8");
             RequestBody body = RequestBody.create(json.toString(), JSON);
 
             Request request = new Request.Builder()
-                    .url(TTS_URL)
+                    .url(url)
                     .post(body)
                     .build();
 
@@ -197,14 +284,23 @@ public class TopicsFragment extends Fragment {
                 @Override
                 public void onResponse(okhttp3.Call call, Response response) {
                     if (!response.isSuccessful()) {
-                        Log.e(TAG, "TTS 응답 실패: " + response.code());
+                        String errorBody = "";
+                        try {
+                            if (response.body() != null) {
+                                errorBody = response.body().string();
+                            }
+                        } catch (Exception ignored) {}
+
+                        Log.e(TAG, "TTS 응답 실패: code=" + response.code()
+                                + " body=" + errorBody);
                         return;
                     }
 
                     try {
                         InputStream is = response.body().byteStream();
                         File cacheDir = requireContext().getCacheDir();
-                        File file = new File(cacheDir, "reel_tts_" + positionForThisRequest + ".mp3");
+                        File file = new File(cacheDir,
+                                "reel_tts_" + positionForThisRequest + ".mp3");
 
                         FileOutputStream fos = new FileOutputStream(file);
                         byte[] buffer = new byte[8 * 1024];
@@ -216,18 +312,18 @@ public class TopicsFragment extends Fragment {
                         fos.close();
                         is.close();
 
-                        // 캐시에 저장 (이미 있으면 덮어쓰기)
+                        // 캐시에 저장
                         ttsCache.put(positionForThisRequest, file);
+                        ttsModeMap.put(positionForThisRequest, usePersonalized);
 
                         if (!autoPlay) {
-                            // 프리페치 요청은 여기서 끝
-                            return;
+                            return; // 프리페치면 여기서 끝
                         }
 
                         if (!isAdded()) return;
 
                         requireActivity().runOnUiThread(() -> {
-                            // 사용자가 스와이프해서 이미 다른 카드로 이동했다면 재생하지 않음
+                            // 사용자가 이미 다른 카드로 넘어갔으면 재생 안 함
                             if (positionForThisRequest == currentPosition) {
                                 initMediaPlayerWithFile(file, positionForThisRequest);
                             }
@@ -241,6 +337,8 @@ public class TopicsFragment extends Fragment {
             Log.e(TAG, "TTS 요청 JSON 구성 오류", e);
         }
     }
+
+
 
     /**
      * mp3 파일로 MediaPlayer 초기화 + 자동 재생 + 끝나면 다음 카드로 이동
@@ -280,7 +378,7 @@ public class TopicsFragment extends Fragment {
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.stop();
                 }
-            } catch (Exception ignored) {
+            } catch (IllegalStateException ignored) {
             }
             mediaPlayer.release();
             mediaPlayer = null;
@@ -288,12 +386,13 @@ public class TopicsFragment extends Fragment {
     }
 
     /**
-     * 페이지 전환 등에서 호출
-     * - 재생 중인 음성만 끊고, 캐시는 남겨두어
-     *   다시 위로 올려도 즉시 재생 가능하게 유지
+     * 현재 재생 중인 오디오 stop + position 인덱스의 캐시도 제거
      */
     private void stopCurrentAudio() {
         stopMediaPlayerOnly();
+        File cached = ttsCache.get(currentPosition);
+        // 캐시를 완전히 지우고 싶으면 여기에서 삭제할 수도 있음
+        // if (cached != null && cached.exists()) cached.delete();
     }
 
     @Override

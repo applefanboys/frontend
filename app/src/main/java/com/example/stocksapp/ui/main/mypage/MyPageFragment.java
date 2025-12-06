@@ -14,9 +14,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-
 import com.example.stocksapp.R;
-import com.example.stocksapp.data.model.FortuneTodayResponse;
+import com.example.stocksapp.ui.login.FortuneTodayResponse;
 import com.example.stocksapp.network.ApiService;
 import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.login.LoginActivity;

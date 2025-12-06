@@ -18,7 +18,7 @@ import com.example.stocksapp.data.model.Q2AnswerRequest;
 import com.example.stocksapp.data.model.Q3AnswerResponse;
 import com.example.stocksapp.data.model.Q3AnswerRequest;
 import com.example.stocksapp.network.KeywordResponse;
-import com.example.stocksapp.data.model.FortuneTodayResponse;
+import com.example.stocksapp.ui.login.FortuneTodayResponse;
 
 
 import java.util.List;
