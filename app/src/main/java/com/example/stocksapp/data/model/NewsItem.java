@@ -1,6 +1,8 @@
 // NewsItem
 package com.example.stocksapp.data.model;
 
+import com.google.gson.annotations.SerializedName;
+
 public class NewsItem {
 
     private int count;
@@ -9,6 +11,10 @@ public class NewsItem {
     private String source;
     private String url;
     private String origin_url;
+
+    @SerializedName("published_at")
+    private String publishedAt;
+
 
     // 기본 생성자
     public NewsItem() {}
@@ -47,4 +53,12 @@ public class NewsItem {
 
     public String getOrigin_url() { return origin_url; }
     public void setOrigin_url(String origin_url) { this.origin_url = origin_url; }
+
+    public String getPublishedAt() {
+        return publishedAt;
+    }
+
+    public void setPublishedAt(String publishedAt) {
+        this.publishedAt = publishedAt;
+    }
 }
