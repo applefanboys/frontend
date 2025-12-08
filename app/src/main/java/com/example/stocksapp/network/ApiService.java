@@ -17,11 +17,14 @@ import com.example.stocksapp.data.model.Q3AnswerResponse;
 import com.example.stocksapp.data.model.Q3AnswerRequest;
 import com.example.stocksapp.data.model.FortuneResponse;
 import com.example.stocksapp.data.model.AiStockResponse;
+import com.example.stocksapp.data.model.PersonalizedNewsResponse;
+import com.example.stocksapp.data.model.TodayNewsResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Body;
 import retrofit2.http.Query;
+import retrofit2.http.Header;
 
 import okhttp3.ResponseBody;
 
@@ -76,6 +79,14 @@ public interface ApiService {
             @Query("name") String name,
             @Query("birthdate") String birthdate,
             @Query("sign") String sign);
+    @GET("/api/news/today")
+    Call<TodayNewsResponse> getTodayNews();
+
+    @GET("/api/news/personalized")
+    Call<PersonalizedNewsResponse> getPersonalizedNews(
+            @Header("X-User-Id") int userId,
+            @Query("days") int days,
+            @Query("total") int total);
 
     // AI 종목 추천 (개인 맞춤)
     @GET("/api/stocks/recommend/personal")
