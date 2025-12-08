@@ -55,13 +55,18 @@ public class PersonalizedNewsCardAdapter extends RecyclerView.Adapter<Personaliz
         // CardView의 제목
         holder.tvTitle.setText(item.getTitle());
 
-        // 이미지는 백엔드에서 뭘 줄지 몰라서 placeholder + origin_url 정도 가정
-        // 만약 썸네일 URL이 따로 있으면 그 필드를 NewsItem에 추가해서 여기서 사용
+        // 썸네일 URL 우선순위: originUrl -> url
+        String imageUrl = item.getOriginUrl();
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            imageUrl = item.getUrl();
+        }
+
         Glide.with(context)
-                .load(item.getOrigin_url()) // 또는 item.getUrl() / 다른 thumbnail 필드
+                .load(imageUrl)
                 .placeholder(R.drawable.ic_launcher_background)
                 .centerCrop()
                 .into(holder.ivImage);
+
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {

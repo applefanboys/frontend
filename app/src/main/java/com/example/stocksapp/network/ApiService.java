@@ -89,13 +89,16 @@ public interface ApiService {
             @Query("sign") String sign,             // 예: "물병자리"
             @Query("interests") String interests);    // 예: "주식, 경제, IT"
 
+
+    // 오늘 메인 뉴스: 파라미터 없음
     @GET("/api/news/today")
     Call<TodayNewsResponse> getTodayNews();
 
+    // 맞춤 뉴스는 그대로 유지 (limit 이름만 확인)
     @GET("/api/news/personalized")
     Call<PersonalizedNewsResponse> getPersonalizedNews(
             @Header("X-User-Id") int userId,
             @Query("days") int days,
-            @Query("total") int total
+            @Query("limit") int limit   // Swagger 기준
     );
 }

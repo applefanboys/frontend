@@ -21,10 +21,11 @@ import androidx.recyclerview.widget.SnapHelper;
 import com.example.stocksapp.R;
 import com.example.stocksapp.data.model.FeedResponse;
 import com.example.stocksapp.data.model.NewsItem;
+import com.example.stocksapp.data.model.PersonalizedNewsResponse;
 import com.example.stocksapp.data.model.StockTip;
 import com.example.stocksapp.data.model.TodayNewsResponse;
 import com.example.stocksapp.data.model.TopicCard;
-import com.example.stocksapp.data.model.PersonalizedNewsResponse;
+import com.example.stocksapp.data.repo.FakeFeedRepository;
 import com.example.stocksapp.network.ApiService;
 import com.example.stocksapp.network.RetrofitClient;
 import com.example.stocksapp.ui.main.adapter.NewsAdapter;
@@ -94,10 +95,9 @@ public class HomeFragment extends Fragment {
         setupNewsTabToggle();
 
         // 데이터 로딩
-        // loadFeed();
         updateKeywordList();
-        loadNewsFromServer();   // 실제 뉴스 API
-        loadPersonalizedNewsFromServer();   // 선호 키워드 기반 맞춤 뉴스
+        loadNewsFromServer();              // 오늘 메인 뉴스
+        loadPersonalizedNewsFromServer();  // 선호 키워드 기반 맞춤 뉴스
 
         return view;
     }
@@ -105,8 +105,7 @@ public class HomeFragment extends Fragment {
     // RecyclerView 설정 (레이아웃, 어댑터, 스냅 등)
     private void setupRecyclerViews() {
         // AI 추천 종목 - 가로, 페이지 스냅
-        // TODO: StockTipAdapter에 클릭 리스너를 받는 생성자 추가 필요
-        stockTipAdapter = new StockTipAdapter(requireContext(), null);// 기본 생성자 사용
+        stockTipAdapter = new StockTipAdapter(requireContext(), null);
         LinearLayoutManager stockLayoutManager =
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
         rvStockTips.setLayoutManager(stockLayoutManager);
@@ -117,7 +116,6 @@ public class HomeFragment extends Fragment {
         stockSnap.attachToRecyclerView(rvStockTips);
 
         // 오늘의 토픽 - 가로, 페이지 스냅
-        // TODO: TopicCardAdapter에 클릭 리스너를 받는 생성자 추가 필요
         topicCardAdapter = new TopicCardAdapter(requireContext(), null);
         LinearLayoutManager topicLayoutManager =
                 new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false);
@@ -188,27 +186,31 @@ public class HomeFragment extends Fragment {
                 .start();
     }
 
-    // 메인 뉴스
+    // 메인 뉴스 (오늘 뉴스) - TodayNewsResponse 래퍼 사용
     private void loadNewsFromServer() {
         progressBar.setVisibility(View.VISIBLE);
 
         apiService.getTodayNews().enqueue(new Callback<TodayNewsResponse>() {
             @Override
-            public void onResponse(Call<TodayNewsResponse> call, Response<TodayNewsResponse> response) {
+            public void onResponse(Call<TodayNewsResponse> call,
+                                   Response<TodayNewsResponse> response) {
                 if (!isAdded()) return;
 
-                progressBar.setVisibility(View.GONE);
+                android.util.Log.d("HOME_MAIN_NEWS",
+                        "code=" + response.code());
 
                 if (response.isSuccessful() && response.body() != null) {
-
-                    List<NewsItem> newsList = response.body().getData();  // 🔥 핵심
-
+                    TodayNewsResponse body = response.body();
+                    List<NewsItem> newsList = body.getData();
                     if (newsList == null) newsList = new ArrayList<>();
 
+                    android.util.Log.d("HOME_MAIN_NEWS",
+                            "count=" + body.getCount() + ", size=" + newsList.size());
+
+                    // ✅ 메인 뉴스만 세팅
                     mainNewsAdapter.setItems(newsList);
                 } else {
-                    android.util.Log.e("HOME_MAIN_NEWS",
-                            "response 실패 code=" + response.code());
+                    loadFeed();   // 실패 시만 FakeFeed
                 }
 
                 progressBar.setVisibility(View.GONE);
@@ -217,56 +219,31 @@ public class HomeFragment extends Fragment {
             @Override
             public void onFailure(Call<TodayNewsResponse> call, Throwable t) {
                 if (!isAdded()) return;
-                android.util.Log.e("HOME_MAIN_NEWS", "onFailure: " + t.getMessage());
+
+                android.util.Log.e("HOME_MAIN_NEWS",
+                        "onFailure: " + t.getMessage(), t);
+                loadFeed();
                 progressBar.setVisibility(View.GONE);
             }
         });
     }
 
-//    // 선호 키워드 기반 맞춤 뉴스 호출 여부 체크
-//    private void loadPersonalizedNewsIfPossible() {
-//        if (!isAdded()) return;
-//
-//        SharedPreferences prefs =
-//                requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
-//        String raw = prefs.getString("include_keywords", "");
-//        int userId = prefs.getInt("user_id", -1);
-//
-//        // 키워드 없으면 굳이 API 안 부름
-//        if (userId <= 0 || raw == null || raw.trim().isEmpty()) {
-//            return;
-//        }
-//
-//        loadPersonalizedNewsFromServer();
-//    }
 
     // 선호 키워드 기반 맞춤 뉴스
-    // 선호 키워드 뉴스
     private void loadPersonalizedNewsFromServer() {
-        // 로그 추가
-        android.util.Log.d("HOME_PERSONAL_NEWS", "▶ 함수 진입");
-
         if (!isAdded()) return;
 
-        // 1) SharedPreferences에서 user_id, 키워드 가져오기
         SharedPreferences prefs =
                 requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
+        int userId = prefs.getInt("user_id", -1);
 
-        int userId = prefs.getInt("user_id", -1);          // 로그인할 때 저장해 둔 user_id
-        String rawKeywords = prefs.getString("include_keywords", "");
-
-        // 로그 추가
-        android.util.Log.d("HOME_PERSONAL_NEWS",
-                "userId=" + userId + ", rawKeywords=" + rawKeywords);
-
-        // 2) userId 없거나, 키워드 없으면 호출 안 함
-//        if (userId <= 0 || rawKeywords == null || rawKeywords.trim().isEmpty()) {
-//            return;
-//        }
         if (userId <= 0) {
+            android.util.Log.w("HOME_PERSONAL_NEWS",
+                    "userId 없음, API 호출 안 함");
             return;
         }
-        apiService.getPersonalizedNews(userId,3, 20)
+
+        apiService.getPersonalizedNews(userId, 3, 20)
                 .enqueue(new Callback<PersonalizedNewsResponse>() {
                     @Override
                     public void onResponse(Call<PersonalizedNewsResponse> call,
@@ -274,21 +251,16 @@ public class HomeFragment extends Fragment {
                         if (!isAdded()) return;
 
                         android.util.Log.d("HOME_PERSONAL_NEWS",
-                                "onResponse: code=" + response.code());
+                                "code=" + response.code());
 
                         if (response.isSuccessful() && response.body() != null) {
-                            List<NewsItem> articles = response.body().getArticles();
-                            if (articles == null) articles = new ArrayList<>();
-
+                            List<NewsItem> list = response.body().getArticles();
+                            if (list == null) list = new ArrayList<>();
                             android.util.Log.d("HOME_PERSONAL_NEWS",
-                                    "articles.size=" + articles.size());
+                                    "size=" + list.size());
 
-                            if (!articles.isEmpty()) {
-                                android.util.Log.d("HOME_PERSONAL_NEWS",
-                                        "first title = " + articles.get(0).getTitle());
-                            }
-
-                            keywordNewsAdapter.setItems(articles);
+                            // 키워드 탭은 personalized로 덮어쓰기
+                            keywordNewsAdapter.setItems(list);
                         } else {
                             String err = "";
                             try {
@@ -296,58 +268,48 @@ public class HomeFragment extends Fragment {
                                     err = response.errorBody().string();
                                 }
                             } catch (Exception e) {
-                                err = "errorBody 읽기 실패: " + e.getMessage();
+                                err = e.getMessage();
                             }
-
                             android.util.Log.e("HOME_PERSONAL_NEWS",
-                                    "response 실패. code=" + response.code() + ", error=" + err);
+                                    "fail code=" + response.code() + ", err=" + err);
                         }
                     }
 
                     @Override
                     public void onFailure(Call<PersonalizedNewsResponse> call, Throwable t) {
                         if (!isAdded()) return;
-                        // 실패 시 기존 리스트 유지
+                        android.util.Log.e("HOME_PERSONAL_NEWS",
+                                "onFailure: " + t.getMessage(), t);
                     }
                 });
     }
 
-    // 피드(뉴스/종목/토픽) 로딩
-//    private void loadFeed() {
-//        // progressBar는 서버 호출 기준으로 관리하고 싶으면 여기서는 안 건드려도 됨
-//        FeedResponse feed = FakeFeedRepository.getFeed();
-//
-//        if (feed != null) {
-//            List<NewsItem> newsList = feed.getNews();
-//            List<StockTip> stockTips = feed.getStockTips();
-//            List<TopicCard> topicCards = feed.getTopics();
-//
-//            if (newsList == null) newsList = new ArrayList<>();
-//            if (stockTips == null) stockTips = new ArrayList<>();
-//            if (topicCards == null) topicCards = new ArrayList<>();
-//
-//            // 🟢 토픽/종목은 항상 FakeFeed 기준으로 세팅
-//            stockTipAdapter.setItems(stockTips);
-//            topicCardAdapter.setItems(topicCards);
-//
-//            // 🟡 뉴스는 "어댑터가 아직 비어 있는 경우"에만 채움 (fallback 역할)
-//            if (mainNewsAdapter.getItemCount() == 0) {
-//                mainNewsAdapter.setItems(newsList);
-//            }
-//            if (keywordNewsAdapter.getItemCount() == 0) {
-//                keywordNewsAdapter.setItems(newsList);
-//            }
-//        }
-//    }
+    // 피드(뉴스/종목/토픽) 로딩 - FakeFeedRepository 사용
+    private void loadFeed() {
+        FeedResponse feed = FakeFeedRepository.getFeed();
 
-//    private void useFeedNewsAsMain() {
-//        FeedResponse feed = FakeFeedRepository.getFeed();
-//        if (feed == null) return;
-//
-//        List<NewsItem> newsList = feed.getNews();
-//        if (newsList == null) newsList = new ArrayList<>();
-//        mainNewsAdapter.setItems(newsList);
-//    }
+        if (feed != null) {
+            List<NewsItem> newsList = feed.getNews();
+            List<StockTip> stockTips = feed.getStockTips();
+            List<TopicCard> topicCards = feed.getTopics();
+
+            if (newsList == null) newsList = new ArrayList<>();
+            if (stockTips == null) stockTips = new ArrayList<>();
+            if (topicCards == null) topicCards = new ArrayList<>();
+
+            // 토픽/종목은 항상 FakeFeed 기준으로 세팅
+            stockTipAdapter.setItems(stockTips);
+            topicCardAdapter.setItems(topicCards);
+
+            // 뉴스는 "어댑터가 아직 비어 있는 경우"에만 채움 (fallback 역할)
+            if (mainNewsAdapter.getItemCount() == 0) {
+                mainNewsAdapter.setItems(newsList);
+            }
+            if (keywordNewsAdapter.getItemCount() == 0) {
+                keywordNewsAdapter.setItems(newsList);
+            }
+        }
+    }
 
     // 선호 키워드 텍스트 업데이트 (SharedPreferences 에서 가져오기)
     private void updateKeywordList() {
@@ -356,7 +318,6 @@ public class HomeFragment extends Fragment {
         SharedPreferences prefs =
                 requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE);
 
-        // 예시: "반도체, 2차전지, 달러" 이런 식으로 저장돼 있다고 가정
         String raw = prefs.getString("include_keywords", "");
 
         if (raw == null || raw.trim().isEmpty()) {
@@ -364,7 +325,6 @@ public class HomeFragment extends Fragment {
             return;
         }
 
-        // "반도체, 2차전지, 달러" → "반도체 · 2차전지 · 달러"
         String pretty = raw.replace(",", " · ").replace(" ,", " · ").trim();
         tvKeywordList.setText(pretty);
     }
