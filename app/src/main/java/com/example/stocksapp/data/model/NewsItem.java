@@ -4,110 +4,89 @@ import com.google.gson.annotations.SerializedName;
 
 public class NewsItem {
 
-    // 이 count는 API JSON에는 없고,
-    // FakeFeed 등에서 편하게 쓰려고 남겨둔 로컬 필드라고 보면 됨
-    private int count;
-
-    @SerializedName("title")
+    // 서버에서 내려오는 필드들
     private String title;
-
-    @SerializedName("summary")
     private String summary;
-
-    @SerializedName("source")
     private String source;
 
-    @SerializedName("url")
+    // 기사 원문 링크
     private String url;
 
-    // JSON 키는 origin_url
+    // 썸네일/원본 이미지 링크 (JSON 키는 origin_url)
     @SerializedName("origin_url")
     private String originUrl;
 
-    // 스펙에는 "publised_at" 로 되어 있고,
-    // perfectNews 코드에는 "published_at" 이라서 둘 다 받게 설정
-    @SerializedName(value = "publised_at", alternate = {"published_at"})
+    // 게시 시각
+    @SerializedName("published_at")
     private String publishedAt;
 
-    // 기본 생성자
+    // (옵션) 개수 등 필요하면 사용
+    private int count;
+
     public NewsItem() {}
 
-    // 간단 생성자 (UI/FakeFeed에서 많이 쓸 거)
-    public NewsItem(String title, String summary, String url) {
-        this.title = title;
-        this.summary = summary;
-        this.url = url;
-    }
-
-    public NewsItem(String title,
-                    String summary,
-                    String url,
-                    String originUrl,
-                    String source,
-                    int count) {
-        this.title = title;
-        this.summary = summary;
-        this.url = url;
-        this.originUrl = originUrl;
-        this.source = source;
-        this.count = count;
-    }
-
-    // ===== Getter / Setter =====
-
+    // ===== title =====
     public String getTitle() {
         return title;
     }
-
-    public void setTitle(String title) {   // SetTitle -> setTitle
+    public void setTitle(String title) {
         this.title = title;
     }
 
-    public int getCount() {
-        return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {       // SetUrl -> setUrl
-        this.url = url;
-    }
-
+    // ===== summary =====
     public String getSummary() {
         return summary;
     }
-
     public void setSummary(String summary) {
         this.summary = summary;
     }
 
+    // ===== source =====
     public String getSource() {
         return source;
     }
-
     public void setSource(String source) {
         this.source = source;
     }
 
+    // ===== url (기사 링크) =====
+    public String getUrl() {
+        return url;
+    }
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    // ===== originUrl (이미지 링크) =====
+    // 새 이름
     public String getOriginUrl() {
         return originUrl;
     }
-
     public void setOriginUrl(String originUrl) {
         this.originUrl = originUrl;
     }
 
+    // 🔁 예전 코드 호환용: getOrigin_url / setOrigin_url 도 같이 둔다
+    public String getOrigin_url() {
+        return originUrl;
+    }
+    public void setOrigin_url(String origin_url) {
+        this.originUrl = origin_url;
+    }
+
+    // ===== publishedAt =====
     public String getPublishedAt() {
         return publishedAt;
     }
-
     public void setPublishedAt(String publishedAt) {
         this.publishedAt = publishedAt;
+    }
+
+    // ===== count (필요하면 사용) =====
+    public int getCount() {
+        return count;
+    }
+    public void setCount(int count) {
+        this.count = count;
     }
 }

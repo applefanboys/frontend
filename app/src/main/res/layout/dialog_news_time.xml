@@ -1,56 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 뉴스 루틴 설정 다이얼로그 -->
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp"
+    android:paddingHorizontal="24dp"
+    android:paddingVertical="20dp"
     android:background="@drawable/bg_dialog_rounded">
 
-    <TextView
-        android:id="@+id/tvTitle"
+    <!-- 상단 타이틀 영역 -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="매일 뉴스를 볼 시간을 고르세요"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:textColor="#111111"
-        android:gravity="center"
-        android:layout_marginBottom="4dp" />
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:layout_marginBottom="20dp">
 
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="뉴스보이에게 뉴스를 받을 시간을 선택하세요"
-        android:textSize="13sp"
-        android:textColor="#666666"
-        android:gravity="center"
-        android:layout_marginBottom="16dp" />
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="매일 뉴스를 볼 시간을 고르세요"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#111111"
+            android:gravity="center" />
 
+        <TextView
+            android:id="@+id/tvSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="뉴스보이에게 뉴스를 받을 시간을 선택하세요"
+            android:textSize="13sp"
+            android:textColor="#777777"
+            android:gravity="center" />
+    </LinearLayout>
+
+    <!-- 루틴 선택 카드들 -->
     <LinearLayout
         android:id="@+id/layoutRoutine1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
         android:layout_marginTop="4dp"
-        android:background="#F4F5F7">
+        android:background="#F4F5F7"
+        android:gravity="center_vertical">
 
         <ImageView
             android:id="@+id/ivCheck1"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_check_off"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginEnd="12dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="출퇴근 루틴"
-            android:textSize="14sp"
-            android:textColor="#222222" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="출퇴근 루틴"
+                android:textSize="14sp"
+                android:textColor="#222222" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="AM 08:00 / PM 18:30"
+                android:textSize="12sp"
+                android:textColor="#999999" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -58,24 +85,40 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
         android:layout_marginTop="8dp"
-        android:background="#F4F5F7">
+        android:background="#F4F5F7"
+        android:gravity="center_vertical">
 
         <ImageView
             android:id="@+id/ivCheck2"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_check_off"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginEnd="12dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="식후 루틴"
-            android:textSize="14sp"
-            android:textColor="#222222" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="식후 루틴"
+                android:textSize="14sp"
+                android:textColor="#222222" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="AM 12:30 / PM 19:30"
+                android:textSize="12sp"
+                android:textColor="#999999" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -83,44 +126,62 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="14dp"
         android:layout_marginTop="8dp"
-        android:background="#F4F5F7">
+        android:background="#F4F5F7"
+        android:gravity="center_vertical">
 
         <ImageView
             android:id="@+id/ivCheck3"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@drawable/ic_check_off"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginEnd="12dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="잠자리 루틴"
-            android:textSize="14sp"
-            android:textColor="#222222" />
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="잠자리 루틴"
+                android:textSize="14sp"
+                android:textColor="#222222" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="AM 08:00 / PM 22:00"
+                android:textSize="12sp"
+                android:textColor="#999999" />
+        </LinearLayout>
     </LinearLayout>
 
+    <!-- 선택된 값 미리보기 -->
     <TextView
         android:id="@+id/tvTimeAm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:text="아침 시간: 08:00"
-        android:textSize="14sp"
-        android:textColor="#333333" />
+        android:textSize="13sp"
+        android:textColor="#444444" />
 
     <TextView
         android:id="@+id/tvTimePm"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="2dp"
         android:text="저녁 시간: 18:30"
-        android:textSize="14sp"
-        android:textColor="#333333" />
+        android:textSize="13sp"
+        android:textColor="#444444" />
 
+    <!-- 확인 버튼 -->
     <Button
         android:id="@+id/btnConfirm"
         android:layout_width="match_parent"
@@ -130,5 +191,4 @@
         android:textSize="15sp"
         android:textColor="#FFFFFF"
         android:background="#2454FF" />
-
 </LinearLayout>

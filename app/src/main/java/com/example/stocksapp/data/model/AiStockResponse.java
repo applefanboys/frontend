@@ -1,27 +1,34 @@
 package com.example.stocksapp.data.model;
 
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 import java.util.List;
 
 public class AiStockResponse {
 
-    // 예: "전체 경제"
-    private String user_interest;
+    @SerializedName("user_interest")
+    @Expose
+    private String userInterest;
 
-    // 예: ["삼성전자", "SK하이닉스"]
-    private List<String> candidates_found;
+    @SerializedName("candidates_found")
+    @Expose
+    private List<String> candidatesFound;
 
-    // 🔥 여기! 이제 문자열이 아니라 AiResult 객체로 받는다.
-    private AiResult ai_result;
+    // 🔥 ai_result 는 JSON 객체이므로 String 말고 AiResult 로 선언
+    @SerializedName("ai_result")
+    @Expose
+    private AiResult aiResult;
 
-    public String getUser_interest() {
-        return user_interest;
+    public String getUserInterest() {
+        return userInterest;
     }
 
-    public List<String> getCandidates_found() {
-        return candidates_found;
+    public List<String> getCandidatesFound() {
+        return candidatesFound;
     }
 
-    public AiResult getAi_result() {
-        return ai_result;
+    public AiResult getAiResult() {
+        return aiResult;
     }
 }

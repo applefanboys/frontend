@@ -45,26 +45,32 @@ public class MainActivity extends AppCompatActivity {
         bottomNav = findViewById(R.id.bottomNav);
         bottomNav.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
-            Fragment fragment;
             if (id == R.id.navigation_home) {
-                fragment = new HomeFragment();
+                replaceFragment(new HomeFragment());
+                return true;
             } else if (id == R.id.navigation_topics) {
-                fragment = new TopicsFragment();
-            } else {
-                fragment = new MyPageFragment();
+                replaceFragment(new TopicsFragment()); // TopicsFragment 연결 확인
+                return true;
+            } else if (id == R.id.navigation_mypage) {
+                replaceFragment(new MyPageFragment());
+                return true;
             }
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.main_nav_host, fragment)
-                    .commit();
-            return true;
+            return false;
         });
 
+        // --- 수정사항: 앱 최초 실행 시에만 다이얼로그를 띄우도록 변경 ---
         if (savedInstanceState == null) {
             bottomNav.setSelectedItemId(R.id.navigation_home);
+            showNewsTimeDialogIfNeeded(); // 호출 위치를 이 블록 안으로 이동
         }
+    }
 
-       // showNewsTimeDialogIfNeeded();//
+    // 프래그먼트 교체를 위한 헬퍼 메서드
+    private void replaceFragment(Fragment fragment) {
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main_nav_host, fragment)
+                .commit();
     }
 
     private void createNotificationChannel() {
@@ -121,53 +127,40 @@ public class MainActivity extends AppCompatActivity {
         final String[] timeAm = {"08:00"};
         final String[] timePm = {"18:30"};
 
-        tvTimeAm.setText("아침 시간: " + timeAm[0]);
-        tvTimePm.setText("저녁 시간: " + timePm[0]);
+        // 다이얼로그의 초기 텍스트 설정 제거 (선택 시 동적으로 변경되므로 불필요)
+        // tvTimeAm.setText("아침 시간: " + timeAm[0]);
+        // tvTimePm.setText("저녁 시간: " + timePm[0]);
 
         View.OnClickListener routineClickListener = v -> {
-            if (v.getId() == R.id.layoutRoutine1) {
+            int viewId = v.getId();
+            if (viewId == R.id.layoutRoutine1) {
                 selected[0] = 1;
                 timeAm[0] = "08:00";
                 timePm[0] = "18:30";
-            } else if (v.getId() == R.id.layoutRoutine2) {
+            } else if (viewId == R.id.layoutRoutine2) {
                 selected[0] = 2;
                 timeAm[0] = "12:30";
                 timePm[0] = "19:30";
-            } else if (v.getId() == R.id.layoutRoutine3) {
+            } else if (viewId == R.id.layoutRoutine3) {
                 selected[0] = 3;
                 timeAm[0] = "08:00";
                 timePm[0] = "22:00";
             }
             updateCheckIcons(selected[0], ivCheck1, ivCheck2, ivCheck3);
-            tvTimeAm.setText("아침 시간: " + timeAm[0]);
-            tvTimePm.setText("저녁 시간: " + timePm[0]);
+            // 선택 시 텍스트 업데이트 (옵션)
+            // tvTimeAm.setText("아침 시간: " + timeAm[0]);
+            // tvTimePm.setText("저녁 시간: " + timePm[0]);
         };
 
         layoutRoutine1.setOnClickListener(routineClickListener);
         layoutRoutine2.setOnClickListener(routineClickListener);
         layoutRoutine3.setOnClickListener(routineClickListener);
 
-        tvTimeAm.setOnClickListener(v -> {
-            String[] parts = timeAm[0].split(":");
-            int hour = Integer.parseInt(parts[0]);
-            int minute = Integer.parseInt(parts[1]);
-            TimePickerDialog picker = new TimePickerDialog(this, (view, hourOfDay, minute1) -> {
-                timeAm[0] = String.format("%02d:%02d", hourOfDay, minute1);
-                tvTimeAm.setText("아침 시간: " + timeAm[0]);
-            }, hour, minute, true);
-            picker.show();
-        });
-
-        tvTimePm.setOnClickListener(v -> {
-            String[] parts = timePm[0].split(":");
-            int hour = Integer.parseInt(parts[0]);
-            int minute = Integer.parseInt(parts[1]);
-            TimePickerDialog picker = new TimePickerDialog(this, (view, hourOfDay, minute12) -> {
-                timePm[0] = String.format("%02d:%02d", hourOfDay, minute12);
-                tvTimePm.setText("저녁 시간: " + timePm[0]);
-            }, hour, minute, true);
-            picker.show();
-        });
+        // 시간 텍스트 클릭하여 TimePicker 띄우는 기능은 제거 (기획 변경으로 보임)
+        /*
+        tvTimeAm.setOnClickListener(v -> { ... });
+        tvTimePm.setOnClickListener(v -> { ... });
+        */
 
         btnConfirm.setOnClickListener(v -> {
             if (selected[0] == -1) {
@@ -177,6 +170,7 @@ public class MainActivity extends AppCompatActivity {
             saveNewsTimeRoutine(selected[0], timeAm[0], timePm[0]);
             scheduleNewsAlarms(timeAm[0], timePm[0]);
             dialog.dismiss();
+            Toast.makeText(this, "알림이 설정되었습니다.", Toast.LENGTH_SHORT).show();
         });
 
         dialog.show();

@@ -16,6 +16,8 @@ import com.example.stocksapp.data.model.TopicCard;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.example.stocksapp.ui.main.topics.NewsReelsAdapter;
+
 
 public class TopicCardAdapter extends RecyclerView.Adapter<TopicCardAdapter.TopicCardViewHolder> {
 

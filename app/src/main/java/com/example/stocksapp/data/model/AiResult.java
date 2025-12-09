@@ -1,23 +1,28 @@
 package com.example.stocksapp.data.model;
 
-// AiStockResponse 안에 들어있는 ai_result(문자열 JSON)를 파싱한 결과
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
+
 public class AiResult {
 
-    // 예: "삼성전자"
-    private String recommended_stock;
+    @SerializedName("recommended_stock")
+    @Expose
+    private String recommendedStock;
 
-    // 예: "005930"
-    private String stock_code;
+    @SerializedName("stock_code")
+    @Expose
+    private String stockCode;
 
-    // 예: "반도체 업황 개선 기대..."
+    @SerializedName("reason")
+    @Expose
     private String reason;
 
-    public String getRecommended_stock() {
-        return recommended_stock;
+    public String getRecommendedStock() {
+        return recommendedStock;
     }
 
-    public String getStock_code() {
-        return stock_code;
+    public String getStockCode() {
+        return stockCode;
     }
 
     public String getReason() {
