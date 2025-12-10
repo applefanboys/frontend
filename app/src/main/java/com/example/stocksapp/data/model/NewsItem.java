@@ -9,12 +9,17 @@ public class NewsItem {
     private String summary;
     private String source;
 
-    // 기사 원문 링크
+    // 기사 원문 링크 (일반 URL)
     private String url;
 
-    // 썸네일/원본 이미지 링크 (JSON 키는 origin_url)
+    // 기사 원문 링크 (JSON 키: origin_url)
+    // 백엔드에서 origin_url을 "원문 기사 링크"로 내려주는 경우
     @SerializedName("origin_url")
     private String originUrl;
+
+    // 🔥 TTS 서버가 originUrl을 크롤링해서 헤더로 내려주는 "실제 이미지 URL"
+    // JSON에는 안 오고, 앱에서 TTS 응답을 보고 채워 넣는 용도
+    private String imageUrl;
 
     // 게시 시각
     @SerializedName("published_at")
@@ -57,8 +62,7 @@ public class NewsItem {
         this.url = url;
     }
 
-    // ===== originUrl (이미지 링크) =====
-    // 새 이름
+    // ===== originUrl (기사 원문 링크: JSON origin_url) =====
     public String getOriginUrl() {
         return originUrl;
     }
@@ -72,6 +76,14 @@ public class NewsItem {
     }
     public void setOrigin_url(String origin_url) {
         this.originUrl = origin_url;
+    }
+
+    // ===== imageUrl (TTS 헤더에서 가져온 실제 이미지 URL) =====
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     // ===== publishedAt =====

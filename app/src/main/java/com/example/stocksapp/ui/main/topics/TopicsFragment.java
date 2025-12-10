@@ -321,9 +321,11 @@ public class TopicsFragment extends Fragment {
             }
 
             if (originUrlToSend != null) {
+                // 서버가 origin_url 기준으로 직접 크롤링해서 x-image-url을 내려주도록 맡김
                 json.put("origin_url", originUrlToSend);
-                json.put("image_url", originUrlToSend);   // 이미지 URL이 별도 없으니 일단 동일하게
+                // json.put("image_url", originUrlToSend);  // ⛔ 삭제 or 주석 처리
             }
+
 
             String url;
             if (usePersonalized) {
@@ -369,33 +371,37 @@ public class TopicsFragment extends Fragment {
                     }
 
                     try {
-                        // 🔹 3) 헤더에서 실제 읽힌 스크립트/이미지 URL 꺼내기
                         String ttsText = response.header("X-TTS-Text");
                         String imageUrlFromHeader = response.header("X-Image-Url");
 
-                        // TTS가 실제로 읽은 문장을 summary에 반영 → 화면과 음성 일치
+                        Log.d(TAG, "TTS 헤더: X-TTS-Text=" + ttsText
+                                + ", X-Image-Url=" + imageUrlFromHeader
+                                + ", originUrl=" + newsItem.getOriginUrl());
+
+                        // ✅ 1) summary 갱신
                         if (ttsText != null && !ttsText.trim().isEmpty()) {
                             String decoded = ttsText;
                             try {
-                                // 서버가 Base64로 보내는 경우 디코딩
                                 byte[] bytes = Base64.decode(ttsText, Base64.DEFAULT);
                                 decoded = new String(bytes, StandardCharsets.UTF_8);
                             } catch (IllegalArgumentException e) {
-                                // Base64가 아니면 그냥 원문 사용
                                 Log.w(TAG, "X-TTS-Text Base64 decode 실패, raw 사용", e);
                             }
                             newsItem.setSummary(decoded);
                         }
 
-                        // originUrl이 비어 있을 때만, 헤더의 이미지 URL로 채워 넣기
-                        String oldOrigin = newsItem.getOriginUrl();
-                        if ((oldOrigin == null || oldOrigin.trim().isEmpty())
-                                && imageUrlFromHeader != null
-                                && !imageUrlFromHeader.trim().isEmpty()) {
-                            newsItem.setOriginUrl(imageUrlFromHeader);
+                        // ✅ 2) 이미지 URL은 별도 필드에 저장 (originUrl 건드리지 X)
+                        if (imageUrlFromHeader != null) {
+                            String trimmed = imageUrlFromHeader.trim();
+                            if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                                Log.d(TAG, "imageUrl 세팅: " + trimmed);
+                                newsItem.setImageUrl(trimmed);
+                            } else {
+                                Log.w(TAG, "X-Image-Url 값이 URL처럼 안 보임: " + trimmed);
+                            }
                         }
 
-                        // UI 갱신
+                        // UI 갱신 (요약/이미지 변경 반영)
                         if (isAdded()) {
                             requireActivity().runOnUiThread(() -> {
                                 try {
@@ -404,7 +410,9 @@ public class TopicsFragment extends Fragment {
                             });
                         }
 
-                        // 🔹 4) 오디오 파일 저장
+                        // 🔹 4) 아래부터는 mp3 저장/재생 로직 그대로 유지
+                        if (!isAdded()) return;
+
                         InputStream is = response.body().byteStream();
                         File cacheDir = requireContext().getCacheDir();
                         File file = new File(cacheDir,
@@ -429,7 +437,6 @@ public class TopicsFragment extends Fragment {
                             return;
                         }
 
-                        // 캐시에 저장 (지금은 안 쓰지만 남겨둠)
                         ttsCache.put(positionForThisRequest, file);
 
                         if (!autoPlay) return;
@@ -444,11 +451,13 @@ public class TopicsFragment extends Fragment {
                         Log.e(TAG, "오디오 파일 처리 / 헤더 반영 중 오류", e);
                     }
                 }
+
             });
         } catch (Exception e) {
             Log.e(TAG, "TTS 요청 JSON 구성 오류", e);
         }
     }
+
 
     // --------------------------------------------------------------------
     // 3. MediaPlayer 관리 (무한 루프)
