@@ -1,5 +1,6 @@
 package com.example.stocksapp.ui.main.topics;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +21,8 @@ import java.util.List;
  * 인스타 릴스 / 쇼츠처럼 세로로 넘기는 뉴스 카드 어댑터
  */
 public class NewsReelsAdapter extends RecyclerView.Adapter<NewsReelsAdapter.NewsReelViewHolder> {
+
+    private static final String TAG = "NewsReelsAdapter";
 
     private final List<NewsItem> items = new ArrayList<>();
 
@@ -57,14 +60,34 @@ public class NewsReelsAdapter extends RecyclerView.Adapter<NewsReelsAdapter.News
         }
         holder.tvSummary.setText(summary);
 
-        // ★ 이미지 로딩 (originUrl 사용)
-        String imageUrl = item.getOriginUrl();
-        Glide.with(holder.itemView.getContext())
-                .load(imageUrl)
-                .placeholder(R.drawable.ic_launcher_background)  // 기본 이미지
-                .error(R.drawable.ic_launcher_background)
-                .into(holder.ivImage);
+        // 🔥 1순위: TTS가 헤더로 준 imageUrl
+        String imageUrl = item.getImageUrl();
+
+        // 🔁 혹시 이미지 못 구했으면, originUrl이 이미지일 수도 있으니 한 번 더 체크 (옵션)
+        if ((imageUrl == null || imageUrl.trim().isEmpty())
+                && item.getOriginUrl() != null) {
+            String candidate = item.getOriginUrl().trim();
+            if (candidate.endsWith(".jpg") || candidate.endsWith(".jpeg")
+                    || candidate.endsWith(".png") || candidate.endsWith(".webp")) {
+                imageUrl = candidate;
+            }
+        }
+
+        Log.d(TAG, "bind pos=" + position
+                + ", imageUrl=" + imageUrl
+                + ", originUrl=" + item.getOriginUrl());
+
+        if (imageUrl == null || imageUrl.trim().isEmpty()) {
+            holder.ivImage.setImageResource(R.drawable.ic_launcher_background);
+        } else {
+            Glide.with(holder.itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_launcher_background)
+                    .error(R.drawable.ic_launcher_background)
+                    .into(holder.ivImage);
+        }
     }
+
 
 
     @Override
